@@ -49,3 +49,7 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+
+# Node modules
+node_modules/
+
