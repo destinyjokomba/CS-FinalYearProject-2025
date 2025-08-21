@@ -17,6 +17,11 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 load_dotenv()
 from psycopg2.errors import UniqueViolation
+from backend.app import app
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
 
 # ─── App Configuration ─────────────────────────────────────────────────
 app = Flask(__name__)
