@@ -137,7 +137,6 @@ def register():
     finally:
         cur.close()
         conn.close()
-
 @app.route("/auth/check-username/<username>", methods=["GET"])
 def check_username(username):
     conn = get_db_connection()
@@ -388,4 +387,5 @@ def national_prediction():
 
 # ─── Start Server ─────────────────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    print("Backend running at http://0.0.0.0:5001")
+    app.run(debug=True, host="0.0.0.0", port=5001)
