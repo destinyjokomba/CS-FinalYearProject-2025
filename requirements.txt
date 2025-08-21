@@ -8,5 +8,6 @@ python-dotenv
 Werkzeug
 pandas
 joblib
+bcrypt
 gunicorn
 psycopg2-binary
