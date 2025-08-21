@@ -15,7 +15,7 @@ backend/data/processed/
 backend/data/tmp/
 backend/models/*.joblib
 backend/models/*.pkl
-!backend/models/final_model.joblib   # keep only the final model(s) you load
+!backend/models/final_model.joblib   
 !backend/models/final_model.pkl
 backend/models/__pycache__/
 

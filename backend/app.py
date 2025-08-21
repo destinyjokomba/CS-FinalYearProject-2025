@@ -47,7 +47,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 BASE_DIR = os.path.dirname(__file__)
 PREDICTIONS_FILE = os.path.join(BASE_DIR, "user_predictions.json")
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
-PIPELINE_PATH = os.path.join(BASE_DIR, "models", "xgb_pipeline_2028.pkl")
+PIPELINE_PATH = os.path.join(BASE_DIR, "models", "final_model.pkl")
 
 # ─── Load ML Pipeline ─────────────────────────────────────────────────
 try:
