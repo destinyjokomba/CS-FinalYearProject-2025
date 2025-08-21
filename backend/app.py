@@ -1,7 +1,6 @@
 # ─── Imports ─────────────────────────────────────────────────────────────
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_cors import cross_origin
+from flask_cors import CORS, cross_origin
 from functools import wraps
 import joblib
 import pandas as pd
@@ -15,13 +14,10 @@ from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-load_dotenv()
 from psycopg2.errors import UniqueViolation
-from backend.app import app
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
+# ─── Load Environment ───────────────────────────────────────────────────
+load_dotenv()
 
 # ─── App Configuration ─────────────────────────────────────────────────
 app = Flask(__name__)
@@ -37,7 +33,6 @@ CORS(
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
-
 @app.after_request
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
@@ -47,7 +42,6 @@ def add_cors_headers(response):
     return response
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
-
 
 # ─── File Paths ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(__file__)
@@ -62,7 +56,6 @@ try:
 except Exception as e:
     print("❌ Failed to load pipeline:", str(e))
     pipeline = None
-
 
 # ─── JWT Auth Middleware ──────────────────────────────────────────────
 def token_required(f):
@@ -98,7 +91,6 @@ def get_db_connection():
         raise RuntimeError("❌ DATABASE_URL is not set in .env")
     return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
 
-
 # ─── REGISTER ──────────────────────────────────────────
 @app.route("/auth/register", methods=["POST"])
 @cross_origin(origins=["http://localhost:5173"], supports_credentials=True)
@@ -125,7 +117,7 @@ def register():
         conn.commit()
         return jsonify({"message": "User registered", "id": user["id"]}), 201
 
-    except UniqueViolation as e:   # 👈 catch unique constraint error properly
+    except UniqueViolation as e:
         conn.rollback()
         error_msg = str(e).lower()
         print("⚠️ Unique violation:", e)
@@ -156,7 +148,6 @@ def check_username(username):
     conn.close()
     return jsonify({"exists": exists}), 200
 
-
 @app.route("/auth/check-email/<email>", methods=["GET"])
 def check_email(email):
     conn = get_db_connection()
@@ -166,8 +157,6 @@ def check_email(email):
     cur.close()
     conn.close()
     return jsonify({"exists": exists}), 200
-
-
 
 # ─── LOGIN ────────────────────────────────────────────
 @app.route("/auth/login", methods=["POST"])
@@ -354,7 +343,6 @@ def get_user_prediction(current_user):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/me/prediction", methods=["DELETE"])
 @token_required
