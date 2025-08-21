@@ -43,3 +43,9 @@ Thumbs.db
 # ─── Backup/duplicate artifacts ─────────────────
 *\ 2*
 *~
+
+# Ignore Mac + Python junk
+.DS_Store
+__pycache__/
+*.pyc
+
