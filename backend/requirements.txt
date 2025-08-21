@@ -1,0 +1,11 @@
+Flask
+Flask-Cors
+Flask-JWT-Extended
+Flask-SQLAlchemy
+Flask-Migrate
+marshmallow
+python-dotenv
+Werkzeug
+pandas
+joblib
+gunicorn
