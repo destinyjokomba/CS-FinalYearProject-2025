@@ -1,1 +1,45 @@
-node_modules
+# ─── Python Backend ─────────────────────────────
+backend/.env
+*.pyc
+__pycache__/
+venv/
+.venv/
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+
+# ML models & data
+backend/data/processed/
+backend/data/tmp/
+backend/models/*.joblib
+backend/models/*.pkl
+!backend/models/final_model.joblib   # keep only the final model(s) you load
+!backend/models/final_model.pkl
+backend/models/__pycache__/
+
+# ─── Node/React Frontend ─────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/build/
+frontend/.next/
+
+# ─── Mac / OS junk ──────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ─── IDE / Editor junk ──────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ─── Backup/duplicate artifacts ─────────────────
+*\ 2*
+*~
