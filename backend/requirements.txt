@@ -9,3 +9,4 @@ Werkzeug
 pandas
 joblib
 gunicorn
+psycopg2-binary
