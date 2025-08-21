@@ -1,12 +1,11 @@
 services:
   - type: web
-    name: election-backend
+    name: election-predictor-backend
     env: python
     region: london
-    buildCommand: |
-      pip install -r backend/requirements.txt
-    startCommand: |
-      cd backend && gunicorn app:app
+    buildCommand: pip install -r ./backend/requirements.txt
+    startCommand: cd backend && gunicorn app:app
+
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.4
