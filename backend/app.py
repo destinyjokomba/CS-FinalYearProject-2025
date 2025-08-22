@@ -43,6 +43,7 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
     return response
 
+
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 
 # ─── File Paths ───────────────────────────────────────────────────────
