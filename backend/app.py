@@ -50,13 +50,16 @@ USERS_FILE = os.path.join(BASE_DIR, "users.json")
 PIPELINE_PATH = os.path.join(BASE_DIR, "models", "final_model.pkl")
 
 # ─── Load ML Pipeline ─────────────────────────────────────────────────
-try:
-    pipeline = joblib.load(PIPELINE_PATH)
-    print("✅ Pipeline model loaded.")
-except Exception as e:
-    print("❌ Failed to load pipeline:", str(e))
+if os.path.exists(PIPELINE_PATH):
+    try:
+        pipeline = joblib.load(PIPELINE_PATH)
+        print(f"✅ Pipeline model loaded from {PIPELINE_PATH}")
+    except Exception as e:
+        print(f"❌ Failed to load pipeline at {PIPELINE_PATH}: {e}")
+        pipeline = None
+else:
+    print(f"⚠️ Pipeline file not found at {PIPELINE_PATH}. Did you commit final_model.pkl?")
     pipeline = None
-
 # ─── JWT Auth Middleware ──────────────────────────────────────────────
 def token_required(f):
     @wraps(f)
