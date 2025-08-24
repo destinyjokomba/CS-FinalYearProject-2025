@@ -52,16 +52,30 @@ USERS_FILE = os.path.join(BASE_DIR, "users.json")
 PIPELINE_PATH = os.path.join(BASE_DIR, "models", "final_model.pkl")
 
 # ─── Load ML Pipeline ─────────────────────────────────────────────────
+import sys
+import importlib
+
+def log_installed_packages():
+    try:
+        import pkg_resources
+        print("Installed packages in Render:")
+        for d in pkg_resources.working_set:
+            print(f" - {d.project_name}=={d.version}")
+    except Exception as e:
+        print(f"⚠️ Could not list installed packages: {e}")
+
+pipeline = None
 if os.path.exists(PIPELINE_PATH):
     try:
         pipeline = joblib.load(PIPELINE_PATH)
         print(f"✅ Pipeline model loaded from {PIPELINE_PATH}")
     except Exception as e:
         print(f"❌ Failed to load pipeline at {PIPELINE_PATH}: {e}")
+        log_installed_packages()  # log available packages if load fails
         pipeline = None
 else:
     print(f"⚠️ Pipeline file not found at {PIPELINE_PATH}. Did you commit final_model.pkl?")
-    pipeline = None
+
 # ─── JWT Auth Middleware ──────────────────────────────────────────────
 def token_required(f):
     @wraps(f)
