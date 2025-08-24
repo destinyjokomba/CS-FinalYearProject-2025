@@ -47,18 +47,13 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 
 # ─── File Paths ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(__file__)
-PREDICTIONS_FILE = os.path.join(BASE_DIR, "user_predictions.json")
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
 PIPELINE_PATH = os.path.join(BASE_DIR, "models", "final_model.pkl")
 
 # ─── Load ML Pipeline ─────────────────────────────────────────────────
-import sys
-import importlib
-
 def log_installed_packages():
     try:
         import pkg_resources
-        print("Installed packages in Render:")
+        print("📦 Installed packages in Render:")
         for d in pkg_resources.working_set:
             print(f" - {d.project_name}=={d.version}")
     except Exception as e:
@@ -71,7 +66,7 @@ if os.path.exists(PIPELINE_PATH):
         print(f"✅ Pipeline model loaded from {PIPELINE_PATH}")
     except Exception as e:
         print(f"❌ Failed to load pipeline at {PIPELINE_PATH}: {e}")
-        log_installed_packages()  # log available packages if load fails
+        log_installed_packages()
         pipeline = None
 else:
     print(f"⚠️ Pipeline file not found at {PIPELINE_PATH}. Did you commit final_model.pkl?")
@@ -156,25 +151,6 @@ def register():
     finally:
         cur.close()
         conn.close()
-@app.route("/auth/check-username/<username>", methods=["GET"])
-def check_username(username):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT 1 FROM users WHERE LOWER(username) = LOWER(%s)", (username,))
-    exists = cur.fetchone() is not None
-    cur.close()
-    conn.close()
-    return jsonify({"exists": exists}), 200
-
-@app.route("/auth/check-email/<email>", methods=["GET"])
-def check_email(email):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT 1 FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
-    exists = cur.fetchone() is not None
-    cur.close()
-    conn.close()
-    return jsonify({"exists": exists}), 200
 
 # ─── LOGIN ────────────────────────────────────────────
 @app.route("/auth/login", methods=["POST"])
@@ -230,7 +206,7 @@ def login():
 def predict(current_user):
     try:
         if pipeline is None:
-            return jsonify({"error": "Model pipeline not loaded"}), 500
+            return jsonify({"error": "Model is not loaded on server. Please try again later."}), 503
 
         data = request.get_json() or {}
         if not data:
