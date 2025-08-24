@@ -10,8 +10,7 @@ services:
       - key: SECRET_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: "http://localhost:5173,https://your-frontend.onrender.com"
-
+        value: "http://localhost:5173,https://election-predictor-frontend.onrender.com"
 
   - type: static
     name: election-predictor-frontend
