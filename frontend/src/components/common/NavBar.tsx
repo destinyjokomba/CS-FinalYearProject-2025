@@ -5,9 +5,9 @@ import { FiMenu, FiX } from "react-icons/fi";
 import { useAuth } from "@/context/useAuth";
 
 const NavBar: React.FC = () => {
-  const { isLoggedIn, setIsLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth(); 
   const location = useLocation();
-  const [darkMode, setDarkMode] = useState(() =>
+  const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
   const [menuOpen, setMenuOpen] = useState(false);
@@ -56,7 +56,7 @@ const NavBar: React.FC = () => {
 
           {isLoggedIn ? (
             <button
-              onClick={() => setIsLoggedIn(false)}
+              onClick={logout} // clean logout
               className="px-3 py-1.5 rounded-md bg-red-500 text-white text-sm hover:bg-red-600 transition"
             >
               Logout
@@ -108,10 +108,7 @@ const NavBar: React.FC = () => {
 
           {isLoggedIn ? (
             <button
-              onClick={() => {
-                setIsLoggedIn(false);
-                setMenuOpen(false);
-              }}
+              onClick={logout} // ✅ works with redirect
               className="w-full px-3 py-1.5 rounded-md bg-red-500 text-white text-sm"
             >
               Logout

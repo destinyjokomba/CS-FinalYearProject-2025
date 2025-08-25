@@ -17,26 +17,29 @@ from dotenv import load_dotenv
 from psycopg2.errors import UniqueViolation
 from routes.party_meta import party_meta_bp
 
+# ─── Load Env ────────────────────────────────────────────────────────────
+load_dotenv()
 
-# ─── App Configuration ─────────────────────────────────────────────────
+# ─── App Configuration ──────────────────────────────────────────────────
 app = Flask(__name__)
 app.register_blueprint(party_meta_bp)
+
 print("Registered routes:")
 for rule in app.url_map.iter_rules():
     print(rule)
 
-# ─── CORS Config ───────────────────────────────────────────────────────
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",")
+# ✅ Use one consistent secret key
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 
-# Add your production frontend URL here
-DEFAULT_ORIGINS = [
-    "http://localhost:5173",
-    "https://election-predictor-frontend.onrender.com"  
-]
+# ─── CORS Config ────────────────────────────────────────────────────────
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "")
+allowed_origins = [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()]
 
-
-# Merge env + defaults
-allowed_origins = list(set(CORS_ORIGINS + DEFAULT_ORIGINS))
+if not allowed_origins:  # fallback if env var is missing
+    allowed_origins = [
+        "http://localhost:5173",
+        "https://election-predictor-frontend.onrender.com"
+    ]
 
 CORS(
     app,
@@ -56,10 +59,10 @@ def add_cors_headers(response):
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
     return response
 
-
-# ─── File Paths ───────────────────────────────────────────────────────
+# ─── File Paths ────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(__file__)
 PIPELINE_PATH = os.path.join(BASE_DIR, "models", "final_model.pkl")
+
 
 # ─── Load ML Pipeline ─────────────────────────────────────────────────
 def log_installed_packages():

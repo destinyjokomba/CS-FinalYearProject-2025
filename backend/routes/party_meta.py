@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 
-# 👇 This ensures everything under this blueprint starts with /api
+
 party_meta_bp = Blueprint("party_meta", __name__, url_prefix="/api")
 
 @party_meta_bp.route("/partyMeta", methods=["GET"])
@@ -43,6 +43,5 @@ def get_party_meta():
             "slogan": "Stronger for Scotland",
         },
     }
-
     print("✅ Serving party metadata:", list(parties.keys()))
     return jsonify(parties)

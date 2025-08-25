@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+// src/pages/ResultsPage.tsx
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { predictParty, partyDisplayMap, Party } from "@/utils/predict_party_logic";
 import {
@@ -24,13 +25,28 @@ const ResultsPage: React.FC = () => {
     }
   });
 
-  // Explicitly type predictParty return
   const { winner, probabilities } = useMemo<{
     winner: Party;
     probabilities: Record<Party, number>;
   }>(() => predictParty(answers), [answers]);
 
   const display = partyDisplayMap[winner];
+
+  // ✅ Save prediction into history
+  useEffect(() => {
+    if (!winner) return;
+
+    const newPrediction = {
+      winner,
+      timestamp: new Date().toISOString(),
+    };
+
+    const stored = localStorage.getItem("predictionHistory");
+    const parsed = stored ? JSON.parse(stored) : [];
+    const updated = [newPrediction, ...parsed];
+
+    localStorage.setItem("predictionHistory", JSON.stringify(updated));
+  }, [winner]);
 
   const chartData = Object.entries(probabilities).map(([party, prob]) => ({
     party,
@@ -40,11 +56,9 @@ const ResultsPage: React.FC = () => {
 
   return (
     <>
-      {/* ✅ Consistent Navigation Bar */}
       <NavBar />
 
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-6">
-        {/* Prediction Card */}
         <div
           className="rounded-2xl shadow-lg p-8 max-w-2xl w-full text-center mb-10"
           style={{ backgroundColor: display.color }}
@@ -76,7 +90,6 @@ const ResultsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Probability Breakdown */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full">
           <h2 className="text-lg font-semibold text-center mb-4">
             Probability Breakdown

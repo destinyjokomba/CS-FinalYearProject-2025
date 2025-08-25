@@ -1,7 +1,0 @@
-
-DATABASE_URL=postgresql://<DB_USER>:<DB_PASSWORD>@<DB_HOST>:5432/<DB_NAME>?sslmode=require
-
-JWT_SECRET_KEY=your_jwt_secret_here
-
-FLASK_SECRET_KEY=your_flask_secret_here
-

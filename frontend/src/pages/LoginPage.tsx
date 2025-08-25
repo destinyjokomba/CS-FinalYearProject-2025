@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/auth";
 import NavBar from "../components/common/NavBar";
+import { useAuth } from "@/context/useAuth";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // ✅ from context
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,9 +17,13 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     try {
       const res = await loginUser({ username, password });
-      localStorage.setItem("token", res.data.access_token);
+
+      // ✅ store token via context (saves under "access_token")
+      login(res.data.token);
+
       navigate("/dashboard");
-    } catch {
+    } catch (err) {
+      console.error("❌ Login failed:", err);
       setError("Invalid username or password");
     }
   };
@@ -29,7 +35,9 @@ const LoginPage: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
             <input
               type="text"
               value={username}
@@ -39,6 +47,7 @@ const LoginPage: React.FC = () => {
               required
             />
 
+            {/* Password */}
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -57,6 +66,7 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

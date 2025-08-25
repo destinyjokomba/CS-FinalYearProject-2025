@@ -1,4 +1,3 @@
-// src/pages/SurveyPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QUESTIONS } from "@/data/surveyOptions";
@@ -41,7 +40,6 @@ const SurveyPage: React.FC = () => {
       localStorage.setItem("surveyAnswers", JSON.stringify(answers));
 
       if (token) {
-        // 🔑 If logged in, also call backend
         const res = await fetch("http://localhost:5001/predict", {
           method: "POST",
           headers: {
@@ -59,7 +57,6 @@ const SurveyPage: React.FC = () => {
         }
       }
 
-      // ✅ Always go to results page
       navigate("/results");
     } catch (err) {
       console.error("❌ Submit failed:", err);
@@ -69,19 +66,21 @@ const SurveyPage: React.FC = () => {
     }
   };
 
+  // Reset survey state
+  const handleRetake = () => {
+    setAnswers({});
+    setCurrentIndex(0);
+    localStorage.removeItem("surveyAnswers");
+  };
+
   const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
 
   return (
     <>
       <NavBar />
       <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4">
-        {/* Blurred background accents */}
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-600/20 rounded-full blur-3xl" />
-
         {/* Survey Card */}
         <div className="relative bg-white/10 dark:bg-slate-800/70 backdrop-blur-lg border border-white/20 shadow-2xl rounded-2xl px-8 py-10 w-full max-w-xl z-10">
-          {/* Header */}
           <h1 className="text-2xl font-bold text-center mb-2">
             Political Alignment Survey
           </h1>
@@ -148,7 +147,16 @@ const SurveyPage: React.FC = () => {
             )}
           </div>
 
-          {/* Disclaimer */}
+          {/* Retake Button */}
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleRetake}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+            >
+              Retake Survey
+            </button>
+          </div>
+
           <p className="text-xs text-slate-400 mt-6 text-center">
             🔒 Your answers are anonymous and only used for research purposes
           </p>

@@ -1,17 +1,16 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/context/useAuth";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const token = localStorage.getItem('token');
-  const isAuthenticated = Boolean(token);
+  const { isLoggedIn } = useAuth(); // ✅ use global auth state
 
-  console.log("🔐 Token:", token); // ✅ Shows token in console
-  console.log("🔐 Authenticated:", isAuthenticated); // (Optional)
+  console.log("🔐 Authenticated:", isLoggedIn);
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  return isLoggedIn ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;
