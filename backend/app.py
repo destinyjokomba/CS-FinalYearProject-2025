@@ -31,8 +31,9 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",")
 # Add your production frontend URL here
 DEFAULT_ORIGINS = [
     "http://localhost:5173",
-    "https://cs-finalyearproject-2025.onrender.com"  # your deployed frontend
+    "https://election-predictor-frontend.onrender.com"  
 ]
+
 
 # Merge env + defaults
 allowed_origins = list(set(CORS_ORIGINS + DEFAULT_ORIGINS))
