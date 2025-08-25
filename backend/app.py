@@ -15,20 +15,32 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from psycopg2.errors import UniqueViolation
+from routes.party_meta import party_meta_bp
 
-# ─── Load Environment ───────────────────────────────────────────────────
-load_dotenv()
 
 # ─── App Configuration ─────────────────────────────────────────────────
 app = Flask(__name__)
+app.register_blueprint(party_meta_bp)
+print("Registered routes:")
+for rule in app.url_map.iter_rules():
+    print(rule)
 
 # ─── CORS Config ───────────────────────────────────────────────────────
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",")
+
+# Add your production frontend URL here
+DEFAULT_ORIGINS = [
+    "http://localhost:5173",
+    "https://cs-finalyearproject-2025.onrender.com"  # your deployed frontend
+]
+
+# Merge env + defaults
+allowed_origins = list(set(CORS_ORIGINS + DEFAULT_ORIGINS))
 
 CORS(
     app,
     supports_credentials=True,
-    resources={r"/*": {"origins": CORS_ORIGINS}},
+    resources={r"/*": {"origins": allowed_origins}},
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
@@ -36,14 +48,13 @@ CORS(
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get("Origin")
-    if origin in CORS_ORIGINS:
+    if origin in allowed_origins:
         response.headers["Access-Control-Allow-Origin"] = origin
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
     return response
 
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 
 # ─── File Paths ───────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(__file__)
@@ -212,7 +223,7 @@ def predict(current_user):
         if not data:
             return jsonify({"error": "No input data provided"}), 400
 
-        # Feature engineering
+        # Feature engineering (same as before)
         def engineer_features(d: Dict[str, Any]) -> Dict[str, Any]:
             education_map = {
                 "no qualification": 0, "gcse or equivalent": 1,
@@ -294,12 +305,18 @@ def predict(current_user):
             for cls, prob in sorted(zip(classes, probs), key=lambda x: x[1], reverse=True)[:3]
         ]
 
-        # Save prediction
+        # Save prediction with confidence + runner_up
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO predictions (user_id, party, region) VALUES (%s, %s, %s)",
-            (current_user["id"], top_predictions[0]["party"], data.get("constituency_leaning") or data.get("region"))
+            "INSERT INTO predictions (user_id, party, region, confidence, runner_up) VALUES (%s, %s, %s, %s, %s)",
+            (
+                current_user["id"],
+                top_predictions[0]["party"],
+                data.get("constituency_leaning") or data.get("region"),
+                top_predictions[0]["confidence"],
+                top_predictions[1]["party"] if len(top_predictions) > 1 else None
+            )
         )
         conn.commit()
         cur.close()
@@ -309,6 +326,7 @@ def predict(current_user):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 # ─── User Prediction Routes ────────────────────────────────
 @app.route("/me/prediction", methods=["GET"])
@@ -377,6 +395,64 @@ def national_prediction():
             "sample_size": total,
             "generated_at": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z"
         }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+
+# ─── Dashboard ──────────────────────────────
+@app.route("/me/dashboard", methods=["GET"])
+@token_required
+def get_dashboard(current_user):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # 1) User profile
+        cur.execute("SELECT id, username, email, constituency, streak, profile_completion, chosen_alignment, profile_pic FROM users WHERE id=%s", (current_user["id"],))
+        user = cur.fetchone()
+
+        # 2) Last prediction
+        cur.execute("""
+            SELECT party, confidence, runner_up, timestamp 
+            FROM predictions 
+            WHERE user_id = %s 
+            ORDER BY timestamp DESC LIMIT 1
+        """, (current_user["id"],))
+        last_prediction = cur.fetchone()
+
+        # 3) History
+        cur.execute("""
+            SELECT party, confidence, runner_up, timestamp 
+            FROM predictions 
+            WHERE user_id = %s 
+            ORDER BY timestamp DESC
+        """, (current_user["id"],))
+        history = cur.fetchall()
+
+        # 4) Badges
+        cur.execute("SELECT name, unlocked, progress_current, progress_target FROM badges WHERE user_id=%s", (current_user["id"],))
+        badges = cur.fetchall()
+
+        # 5) Regional comparison
+        region = user["constituency"] or "unknown"
+        cur.execute("SELECT party, COUNT(*)::int FROM predictions WHERE region=%s GROUP BY party", (region,))
+        region_counts = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "user": user,
+            "lastPrediction": last_prediction,
+            "history": history,
+            "badges": badges,
+            "comparison": {
+                "region": region,
+                "regionData": region_counts
+            }
+        }), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
