@@ -1,17 +1,20 @@
-// src/services/auth.ts
 import api from "./api";
-import { RegisterPayload, LoginPayload } from "@/types/auth";
 
 // Register user
-export const registerUser = async (form: RegisterPayload) => {
+export const registerUser = async (form: {
+  first_name: string;
+  surname: string;
+  username: string;
+  email: string;
+  password: string;
+}) => {
   return api.post("/auth/register", form);
 };
 
 // Login user
-export const loginUser = async (form: LoginPayload) => {
+export const loginUser = async (form: { username: string; password: string }) => {
   const res = await api.post("/auth/login", form);
-  const token = res.data.token; // ✅ backend sends "token"
-
+  const token = res.data.token; 
   if (token) {
     localStorage.setItem("token", token);
   }

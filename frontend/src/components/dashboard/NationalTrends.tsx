@@ -1,4 +1,3 @@
-// src/components/dashboard/NationalTrends.tsx
 import React from "react";
 import {
   LineChart,
@@ -13,7 +12,7 @@ import {
 import { TooltipProps } from "recharts";
 import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
-// Data
+// Mock data
 const nationalTrendData = [
   { date: "Jul", Labour: 40, Conservative: 32, LibDem: 15, Green: 6, Reform: 20, Other: 3 },
   { date: "Aug", Labour: 25, Conservative: 31, LibDem: 14, Green: 8, Reform: 35, Other: 1 },
@@ -28,7 +27,7 @@ const partyColors: Record<string, string> = {
   LibDem: "#FDBB30",
   Green: "#6AB023",
   Reform: "#00BFFF",
-  Other: "#A0AEC0", 
+  Other: "#A0AEC0",
 };
 
 interface TrendEntry {
@@ -40,7 +39,7 @@ interface TrendEntry {
 const CustomTooltip: React.FC<TooltipProps<ValueType, NameType>> = (props) => {
   const { active, payload, label } = props as {
     active?: boolean;
-    payload?: TrendEntry[];
+    payload?: (TrendEntry & { name: string; value: number })[];
     label?: string;
   };
 
@@ -49,8 +48,8 @@ const CustomTooltip: React.FC<TooltipProps<ValueType, NameType>> = (props) => {
       <div className="bg-white dark:bg-slate-700 p-3 rounded shadow text-sm">
         <p className="font-semibold mb-1">{label}</p>
         {payload.map((entry, idx) => (
-          <p key={idx} style={{ color: partyColors[entry.name] }}>
-            {entry.name}: {entry.value}%
+          <p key={idx} style={{ color: partyColors[entry.name] || "#333" }}>
+            {entry.name}: {entry.value ?? 0}%
           </p>
         ))}
       </div>
@@ -60,11 +59,21 @@ const CustomTooltip: React.FC<TooltipProps<ValueType, NameType>> = (props) => {
 };
 
 const NationalTrends: React.FC = () => {
+  const safeData = (nationalTrendData || []).map((row) => ({
+    date: row.date || "N/A",
+    Labour: row.Labour ?? 0,
+    Conservative: row.Conservative ?? 0,
+    LibDem: row.LibDem ?? 0,
+    Green: row.Green ?? 0,
+    Reform: row.Reform ?? 0,
+    Other: row.Other ?? 0,
+  }));
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-6">
       <h3 className="text-lg font-bold mb-4">National Trends Over Time</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={nationalTrendData}>
+        <LineChart data={safeData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
           <XAxis dataKey="date" />
           <YAxis domain={[0, 60]} tickFormatter={(val) => `${val}%`} />

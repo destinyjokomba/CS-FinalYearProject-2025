@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from "react";
 import NavBar from "@/components/common/NavBar";
 import ProfileCard from "@/components/dashboard/ProfileCard";
@@ -7,68 +8,66 @@ import ComparisonChart from "@/components/dashboard/ComparisonChart";
 import Badges from "@/components/dashboard/Badges";
 import NationalTrends from "@/components/dashboard/NationalTrends";
 
-// ─── Types ───────────────────────────────────────────────
-type User = {
-  id: number;
-  name: string;
-  profilePic: string | null;
-  constituency?: string;
-  streak?: number;
-  profileCompletion?: number;
-  chosenAlignment?: string;
-};
-
-type Prediction = {
-  party: string;
-  confidence: number;
-  runnerUp: string;
-  timestamp: string;
-};
+import { Prediction, ComparisonData, Badge } from "@/types/dashboard";
+import { useAuth } from "@/context/useAuth";
 
 type HistoryPrediction = {
   party: string;
   confidence: number;
-  date: string;
+  runnerUp?: string;
+  timestamp: string;
 };
 
-type RegionDatum = {
-  party: string;
-  share: number;
-};
-
-type ComparisonData = {
-  userParty: string;
-  region: string;
-  regionData: RegionDatum[];
-};
-
-// ─── Dashboard Page ──────────────────────────────────────
 const DashboardPage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser } = useAuth();
+
   const [lastPrediction, setLastPrediction] = useState<Prediction | null>(null);
   const [history, setHistory] = useState<HistoryPrediction[]>([]);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
-  const [badges, setBadges] = useState<string[]>([]);
+  const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+useEffect(() => {
+  const token = localStorage.getItem("access_token");
+  if (!token) return;
 
-    fetch(`${import.meta.env.VITE_API_URL}/me/dashboard`, {
-      headers: { Authorization: `Bearer ${token}` },
+  fetch(`${import.meta.env.VITE_API_URL}/me/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to load dashboard");
+      }
+      return res.json();
     })
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data.user);
-        setLastPrediction(data.lastPrediction);
-        setHistory(data.history || []);
-        setComparison(data.comparison || null);
-        setBadges(data.badges ? data.badges.map((b: { name: string }) => b.name) : []);
-      })
-      .catch((err) => console.error("❌ Dashboard fetch failed", err))
-      .finally(() => setLoading(false));
-  }, []);
+    .then((data) => {
+      if (data.user) {
+        const mergedUser = { ...data.user };
+        setUser(mergedUser);
+        localStorage.setItem("user", JSON.stringify(mergedUser));
+      }
+      setLastPrediction(data.lastPrediction || null);
+      setHistory(data.history || []);
+      setComparison(data.comparison || null);
+      setBadges(
+        (data.badges || []).map((b: Partial<Badge>): Badge => ({
+          name: b.name || "Unknown",
+          unlocked: !!b.unlocked,
+          progress_current: b.progress_current ?? 0,
+          progress_target: b.progress_target ?? 0,
+        }))
+      );
+    })
+    .catch((err) => {
+      if (err instanceof Error) {
+        console.error("Dashboard fetch failed:", err.message);
+      } else {
+        console.error("Unknown error:", err);
+      }
+    })
+    .finally(() => setLoading(false));
+}, [setUser, user]);
 
   if (loading) {
     return (
@@ -81,7 +80,7 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  if (!user || !lastPrediction) {
+  if (!user) {
     return (
       <>
         <NavBar />
@@ -92,6 +91,8 @@ const DashboardPage: React.FC = () => {
     );
   }
 
+  const activeParty = user.dashboardParty || lastPrediction?.party;
+
   return (
     <>
       <NavBar />
@@ -100,7 +101,14 @@ const DashboardPage: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-6">
             <ProfileCard user={user} latestPrediction={lastPrediction} />
-            <PartyCard prediction={lastPrediction} />
+            {activeParty && (
+              <PartyCard
+                prediction={{
+                  party: activeParty,
+                  confidence: lastPrediction?.confidence ?? 0,
+                }}
+              />
+            )}
             <Badges unlockedBadges={badges} />
           </div>
 
