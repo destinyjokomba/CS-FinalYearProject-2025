@@ -1,7 +1,8 @@
 // src/pages/SettingsPage.tsx
 import React, { useState, useEffect } from "react";
-import NavBar from "@/components/common/NavBar";
-import { useAuth } from "@/context/useAuth";
+import { Link, useLocation } from "react-router-dom";
+import auth from "@/context/useAuth";
+import type { User } from "@/types/dashboard";
 
 const parties = [
   { value: "lab", label: "Labour" },
@@ -13,57 +14,63 @@ const parties = [
   { value: "other", label: "Other" },
 ];
 
+const regions = [
+  "Scotland",
+  "Wales",
+  "North of England",
+  "Midlands",
+  "London",
+  "South of England",
+];
+
 const SettingsPage: React.FC = () => {
-  const { user, setUser } = useAuth();
-  const [displayName, setDisplayName] = useState(user?.displayName || "");
-  const [constituency, setConstituency] = useState(user?.constituency || "");
-  const [partyOverride, setPartyOverride] = useState(user?.dashboardParty || "");
+  const location = useLocation();
+
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [constituency, setConstituency] = useState("");
+  const [chosenAlignment, setChosenAlignment] = useState("");
+  const [dashboardParty, setDashboardParty] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [profilePic, setProfilePic] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    user?.profilePicUrl || null
-  );
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [message, setMessage] = useState("");
 
-  // Load saved user on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const storedUser = auth.getUser();
     if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      if (parsed.profilePicUrl) setPreviewUrl(parsed.profilePicUrl);
-    }
-  }, [setUser]);
+      setDisplayName(storedUser.displayName || "");
+      setEmail(storedUser.email || "");
+      setConstituency(storedUser.constituency || "");
+      setChosenAlignment(storedUser.chosenAlignment || "");
+      setDashboardParty(storedUser.dashboardParty || "");
+      setPreviewUrl(storedUser.profilePicUrl || null);
 
-  // Handle preview for new uploads
-  useEffect(() => {
-    if (!profilePic) return;
-    const url = URL.createObjectURL(profilePic);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [profilePic]);
-
-  // Handle theme change
-  useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+      // ✅ Load alignment fallback from localStorage if available
+      const storedAlignment = localStorage.getItem("chosenAlignment");
+      if (storedAlignment && !storedUser.chosenAlignment) {
+        setChosenAlignment(storedAlignment);
+      }
     }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  }, [location.pathname]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setProfilePic(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = auth.getToken();
       if (!token) {
         setMessage("❌ Not logged in");
         return;
       }
 
-      let uploadedPicUrl = previewUrl;
+      let uploadedPicUrl: string | null = null;
 
-      // 🔹 Upload profile picture if new file selected
       if (profilePic) {
         const formData = new FormData();
         formData.append("file", profilePic);
@@ -72,204 +79,173 @@ const SettingsPage: React.FC = () => {
           `${import.meta.env.VITE_API_URL}/me/upload-profile-pic`,
           {
             method: "POST",
-            headers: { Authorization: `Bearer ${token}` }, // ✅ Auth only
+            headers: { Authorization: `Bearer ${token}` },
             body: formData,
           }
         );
 
         const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) {
-          throw new Error(uploadData.error || "Upload failed");
-        }
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
         uploadedPicUrl = uploadData.profilePicUrl;
       }
 
-      // 🔹 Save settings
+      const body: Record<string, unknown> = {
+        displayName,
+        constituency,
+        chosenAlignment,
+        dashboardParty,
+      };
+      if (uploadedPicUrl) body.profilePicUrl = uploadedPicUrl;
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/me/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          displayName,
-          constituency,
-          dashboardParty: partyOverride,
-          profilePicUrl: uploadedPicUrl,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to save settings");
+      if (!res.ok) throw new Error(data.error || "Failed to save settings");
+
+      // ✅ Update local storage user + alignment
+      auth.setUser(data.user as User);
+      if (chosenAlignment) {
+        localStorage.setItem("chosenAlignment", chosenAlignment);
       }
 
-      setUser(data.user);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Unlock badge if alignment is set
+      if (chosenAlignment) {
+        localStorage.setItem("alignment_set", "true");
+      }
 
       setMessage("✅ Settings saved successfully!");
       setTimeout(() => setMessage(""), 3000);
-    } catch (err) {
+    } catch (err: unknown) {
       if (err instanceof Error) {
-        console.error("Save error:", err.message);
+        setMessage("❌ " + err.message);
       } else {
-        console.error("Unknown error:", err);
+        setMessage("❌ Error saving settings.");
       }
-      setMessage("❌ Error saving settings.");
     }
   };
 
-  const handleResetProfilePic = () => {
-    setProfilePic(null);
-    setPreviewUrl(null);
-  };
-
   return (
-    <>
-      <NavBar />
-      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-slate-900 px-6">
-        <div className="bg-white dark:bg-slate-800 shadow-lg rounded-2xl p-8 w-full max-w-2xl">
-          <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
-            ⚙️ Settings
-          </h1>
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-slate-900 px-6">
+      <div className="bg-white dark:bg-slate-800 shadow-lg rounded-2xl p-8 w-full max-w-2xl">
+        <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+          ⚙️ Settings
+        </h1>
 
-          {/* Profile Picture */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Profile Picture
-            </label>
-            <div className="flex items-center gap-4">
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-20 h-20 rounded-full object-cover border"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500">
-                  No Image
-                </div>
-              )}
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setProfilePic(e.target.files ? e.target.files[0] : null)
-                  }
-                />
-                {previewUrl && (
-                  <button
-                    onClick={handleResetProfilePic}
-                    className="ml-2 text-sm text-red-500"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Display Name */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Display Name
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
+        {/* Profile Picture */}
+        <div className="mb-6">
+          <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Profile Picture
+          </label>
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Profile Preview"
+              className="w-20 h-20 rounded-full mb-3"
             />
-          </div>
-
-          {/* Email (read-only) */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={user?.email || ""}
-              readOnly
-              className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white opacity-70 cursor-not-allowed"
-            />
-          </div>
-
-          {/* Constituency */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Constituency
-            </label>
-            <input
-              type="text"
-              value={constituency}
-              onChange={(e) => setConstituency(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
-            />
-          </div>
-
-          {/* Theme Toggle */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Theme
-            </label>
-            <select
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
-            >
-              <option value="light">Light Mode</option>
-              <option value="dark">Dark Mode</option>
-            </select>
-          </div>
-
-          {/* Party Override Dropdown */}
-          <div className="mb-6">
-            <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Dashboard Party Override
-            </label>
-            <select
-              value={partyOverride}
-              onChange={(e) => setPartyOverride(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
-            >
-              <option value="">None (Use Prediction)</option>
-              {parties.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Privacy Link */}
-          <div className="mb-6">
-            <a
-              href="/privacy"
-              className="text-blue-600 dark:text-blue-400 underline"
-            >
-              Privacy Policy / Data Usage
-            </a>
-          </div>
-
-          {/* Save Button */}
-          <button
-            onClick={handleSave}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
-          >
-            Save Changes
-          </button>
-
-          {/* Success/Error Message */}
-          {message && (
-            <p className="mt-3 text-center text-sm font-medium text-green-500">
-              {message}
-            </p>
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-gray-200 mb-3" />
           )}
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+        </div>
+
+        {/* Display Name */}
+        <div className="mb-6">
+          <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Display Name
+          </label>
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="mb-6">
+          <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Email
+          </label>
+          <input
+            type="text"
+            value={email}
+            readOnly
+            className="w-full border rounded-lg px-3 py-2 bg-gray-100 dark:bg-slate-700 dark:text-gray-400"
+          />
+        </div>
+
+        {/* Region */}
+        <div className="mb-6">
+          <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Region
+          </label>
+          <select
+            value={constituency}
+            onChange={(e) => setConstituency(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
+          >
+            <option value="">Select a region</option>
+            {regions.map((region) => (
+              <option key={region} value={region}>
+                {region}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Alignment */}
+        <div className="mb-6">
+          <label className="block font-medium text-gray-700 dark:text-gray-200 mb-2">
+            Political Alignment
+          </label>
+          <select
+            value={chosenAlignment}
+            onChange={(e) => setChosenAlignment(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
+          >
+            <option value="">None (Not selected)</option>
+            {parties.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={handleSave}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+        >
+          Save Changes
+        </button>
+
+        {message && (
+          <p className="mt-3 text-center text-sm font-medium text-green-500">
+            {message}
+          </p>
+        )}
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Want to learn more about how we protect your data?{" "}
+            <Link
+              to="/security"
+              data-testid="privacy-security-link"
+              className="text-blue-600 hover:underline"
+            >
+              Read about Security & GDPR
+            </Link>
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

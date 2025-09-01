@@ -1,9 +1,39 @@
 // src/types/dashboard.ts
 
-// Match what ComparisonChart expects
+// ✅ single source of truth
+export type Party =
+  | "lab"     // Labour
+  | "con"     // Conservative
+  | "ld"      // Liberal Democrats
+  | "green"   // Green
+  | "reform"  // Reform UK
+  | "snp"     // SNP
+  | "other";  // Other
+
+export interface PredictionResult {
+  winner: Party;
+  probabilities: Record<Party, number>;
+}
+
+export interface Prediction {
+  party: Party;
+  runnerUp?: Party;
+  confidence?: number;
+  timestamp?: string;
+  partyLabel?: string;
+}
+
+export interface HistoryPrediction {
+  party: Party;
+  runnerUp?: Party;
+  confidence?: number;
+  timestamp: string;
+  partyLabel?: string;
+}
+
 export interface RegionDatum {
-  party: string;
-  share: number; 
+  party: Party;
+  share: number;
 }
 
 export interface ComparisonData {
@@ -12,22 +42,16 @@ export interface ComparisonData {
 }
 
 export interface User {
-  id?: number;
-  username?: string;
-  email?: string;               
-  constituency?: string;        
-  profilePicUrl?: string | null;
-  displayName?: string;
-  dashboardParty?: string;
-  streak?: number;
-  profileCompletion?: number;
-  chosenAlignment?: string;
+  id: number;
+  username: string;
+  email: string;
+  displayName?: string;       
+  constituency?: string;     
+  chosenAlignment?: string;   
+  dashboardParty?: string;    
+  profilePicUrl?: string;    
 }
 
-export interface Prediction {
-  party: string;
-  confidence?: number; 
-}
 
 export interface Badge {
   name: string;

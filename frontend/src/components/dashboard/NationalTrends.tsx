@@ -14,11 +14,14 @@ import { ValueType, NameType } from "recharts/types/component/DefaultTooltipCont
 
 // Mock data
 const nationalTrendData = [
-  { date: "Jul", Labour: 40, Conservative: 32, LibDem: 15, Green: 6, Reform: 20, Other: 3 },
-  { date: "Aug", Labour: 25, Conservative: 31, LibDem: 14, Green: 8, Reform: 35, Other: 1 },
-  { date: "Sep", Labour: 30, Conservative: 30, LibDem: 13, Green: 9, Reform: 38, Other: 3 },
-  { date: "Oct", Labour: 42, Conservative: 32, LibDem: 12, Green: 12, Reform: 28, Other: 6 },
+  { date: "Jul", Labour: 40, Conservative: 22, LibDem: 15, Green: 10, Reform: 18, SNP: 7, Other: 2 },
+  { date: "Aug", Labour: 38, Conservative: 20, LibDem: 16, Green: 12, Reform: 28, SNP: 6, Other: 2 },
+  { date: "Sep", Labour: 34, Conservative: 18, LibDem: 17, Green: 14, Reform: 37, SNP: 5, Other: 2 },
+  { date: "Oct", Labour: 41, Conservative: 17, LibDem: 18, Green: 16, Reform: 39, SNP: 4, Other: 2 },
 ];
+
+
+
 
 // Party colors
 const partyColors: Record<string, string> = {
@@ -27,6 +30,7 @@ const partyColors: Record<string, string> = {
   LibDem: "#FDBB30",
   Green: "#6AB023",
   Reform: "#00BFFF",
+  SNP: "#FDF38E",
   Other: "#A0AEC0",
 };
 

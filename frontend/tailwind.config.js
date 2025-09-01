@@ -26,7 +26,7 @@ module.exports = {
         accent: 'oklch(var(--accent) / <alpha-value>)',
         'accent-foreground': 'oklch(var(--accent-foreground) / <alpha-value>)',
         destructive: 'oklch(var(--destructive) / <alpha-value>)',
-        // Add more as needed...
+        
       },
     },
   },

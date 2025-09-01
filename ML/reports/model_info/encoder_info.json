@@ -1,0 +1,213 @@
+{
+    "Encoder Type": "<class 'sklearn.preprocessing._encoders.OneHotEncoder'>",
+    "Categories": {
+        "age_bracket": [
+            "18\u201324",
+            "25\u201334",
+            "35\u201344",
+            "45\u201354",
+            "55\u201364",
+            "65+"
+        ],
+        "education_level": [
+            "a-level or equivalent",
+            "bachelors degree",
+            "bachelor\u2019s degree",
+            "gcse or equivalent",
+            "masters degree",
+            "master\u2019s degree",
+            "no qualification",
+            "other",
+            "phd or higher"
+        ],
+        "household_income": [
+            "under \u00a320,000",
+            "\u00a320,000\u2013\u00a340,000",
+            "\u00a340,000\u2013\u00a360,000",
+            "\u00a360,000+",
+            "\u00a360,000-\u00a380,000",
+            "\u00a380,000 +"
+        ],
+        "socioeconomic_class": [
+            "lower middle class",
+            "middle class",
+            "upper middle class",
+            "working class"
+        ],
+        "housing_status": [
+            "council housing",
+            "homeowner",
+            "living with family",
+            "renter"
+        ],
+        "constituency_leaning": [
+            "conservative",
+            "conservative-leaning",
+            "green",
+            "green-leaning",
+            "labour",
+            "labour-leaning",
+            "liberal democrat",
+            "other",
+            "reform",
+            "snp"
+        ],
+        "vote_national": [
+            "no",
+            "yes"
+        ],
+        "vote_local": [
+            "no",
+            "yes"
+        ],
+        "satisfaction_national_government": [
+            "dissatisfied",
+            "neutral",
+            "satisfied",
+            "very dissatisfied",
+            "very satisfied"
+        ],
+        "importance_economy": [
+            "important",
+            "not important",
+            "somewhat important",
+            "very important"
+        ],
+        "importance_social_issues": [
+            "important",
+            "not important",
+            "somewhat important",
+            "very important"
+        ],
+        "support_welfare_spending": [
+            "no",
+            "oppose",
+            "strongly support",
+            "support",
+            "yes"
+        ],
+        "tax_on_wealthy": [
+            "no",
+            "oppose",
+            "strongly support",
+            "support",
+            "yes"
+        ],
+        "trust_mainstream_media": [
+            "high",
+            "low",
+            "medium",
+            "very high",
+            "very low"
+        ],
+        "concern_political_corruption": [
+            "not concerned",
+            "somewhat concerned",
+            "very concerned"
+        ],
+        "climate_priority": [
+            "no",
+            "yes"
+        ],
+        "immigration_policy_stance": [
+            "more open",
+            "restrictive",
+            "unbothered",
+            "very restrictive"
+        ],
+        "trust_public_institutions": [
+            "high",
+            "low",
+            "medium",
+            "very high",
+            "very low"
+        ]
+    },
+    "Output Features": [
+        "age_bracket_18\u201324",
+        "age_bracket_25\u201334",
+        "age_bracket_35\u201344",
+        "age_bracket_45\u201354",
+        "age_bracket_55\u201364",
+        "age_bracket_65+",
+        "education_level_a-level or equivalent",
+        "education_level_bachelors degree",
+        "education_level_bachelor\u2019s degree",
+        "education_level_gcse or equivalent",
+        "education_level_masters degree",
+        "education_level_master\u2019s degree",
+        "education_level_no qualification",
+        "education_level_other",
+        "education_level_phd or higher",
+        "household_income_under \u00a320,000",
+        "household_income_\u00a320,000\u2013\u00a340,000",
+        "household_income_\u00a340,000\u2013\u00a360,000",
+        "household_income_\u00a360,000+",
+        "household_income_\u00a360,000-\u00a380,000",
+        "household_income_\u00a380,000 +",
+        "socioeconomic_class_lower middle class",
+        "socioeconomic_class_middle class",
+        "socioeconomic_class_upper middle class",
+        "socioeconomic_class_working class",
+        "housing_status_council housing",
+        "housing_status_homeowner",
+        "housing_status_living with family",
+        "housing_status_renter",
+        "constituency_leaning_conservative",
+        "constituency_leaning_conservative-leaning",
+        "constituency_leaning_green",
+        "constituency_leaning_green-leaning",
+        "constituency_leaning_labour",
+        "constituency_leaning_labour-leaning",
+        "constituency_leaning_liberal democrat",
+        "constituency_leaning_other",
+        "constituency_leaning_reform",
+        "constituency_leaning_snp",
+        "vote_national_no",
+        "vote_national_yes",
+        "vote_local_no",
+        "vote_local_yes",
+        "satisfaction_national_government_dissatisfied",
+        "satisfaction_national_government_neutral",
+        "satisfaction_national_government_satisfied",
+        "satisfaction_national_government_very dissatisfied",
+        "satisfaction_national_government_very satisfied",
+        "importance_economy_important",
+        "importance_economy_not important",
+        "importance_economy_somewhat important",
+        "importance_economy_very important",
+        "importance_social_issues_important",
+        "importance_social_issues_not important",
+        "importance_social_issues_somewhat important",
+        "importance_social_issues_very important",
+        "support_welfare_spending_no",
+        "support_welfare_spending_oppose",
+        "support_welfare_spending_strongly support",
+        "support_welfare_spending_support",
+        "support_welfare_spending_yes",
+        "tax_on_wealthy_no",
+        "tax_on_wealthy_oppose",
+        "tax_on_wealthy_strongly support",
+        "tax_on_wealthy_support",
+        "tax_on_wealthy_yes",
+        "trust_mainstream_media_high",
+        "trust_mainstream_media_low",
+        "trust_mainstream_media_medium",
+        "trust_mainstream_media_very high",
+        "trust_mainstream_media_very low",
+        "concern_political_corruption_not concerned",
+        "concern_political_corruption_somewhat concerned",
+        "concern_political_corruption_very concerned",
+        "climate_priority_no",
+        "climate_priority_yes",
+        "immigration_policy_stance_more open",
+        "immigration_policy_stance_restrictive",
+        "immigration_policy_stance_unbothered",
+        "immigration_policy_stance_very restrictive",
+        "trust_public_institutions_high",
+        "trust_public_institutions_low",
+        "trust_public_institutions_medium",
+        "trust_public_institutions_very high",
+        "trust_public_institutions_very low"
+    ]
+}

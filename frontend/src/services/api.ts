@@ -1,23 +1,34 @@
 // src/services/api.ts
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:5001",
-  headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-});
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login"; 
-    }
-    return Promise.reject(error);
-  }
-);
+// --- Auth APIs ---
+export const loginUser = (username: string, password: string) => {
+  return axios.post(`${API_URL}/auth/login`, { username, password });
+};
 
+export const registerUser = (form: {
+  first_name: string;
+  surname: string;
+  username: string;
+  email: string;
+  password: string;
+}) => {
+  return axios.post(`${API_URL}/auth/register`, form);
+};
 
-export default api;
+// --- Example protected API ---
+export const getDashboard = () => {
+  const token = localStorage.getItem("token");
+  return axios.get(`${API_URL}/me/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
 
+// Provide both named + default exports
+export default {
+  loginUser,
+  registerUser,
+  getDashboard,
+};

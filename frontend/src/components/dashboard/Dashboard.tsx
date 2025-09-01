@@ -1,58 +1,119 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PartyCard from "@/components/dashboard/PartyCard";
+import ProfileCard from "@/components/dashboard/ProfileCard";
+import HistoryTimeline from "@/components/dashboard/HistoryTimeline";
+import { Party, Prediction, User } from "@/types/dashboard";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [prediction, setPrediction] = useState<string | null>(null);
-  const [confidence, setConfidence] = useState<string | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [lastPrediction, setLastPrediction] = useState<Prediction | null>(null);
+  const [history, setHistory] = useState<Prediction[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setPrediction(localStorage.getItem('prediction_result'));
-    setConfidence(localStorage.getItem('confidence_score'));
-  }, []);
+    const fetchDashboard = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5001/me/dashboard", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.error("❌ Failed to load dashboard");
+          if (res.status === 401) navigate("/login");
+          return;
+        }
+
+        const data = await res.json();
+        setUser(data.user || null);
+        setLastPrediction(data.lastPrediction || null);
+        setHistory(data.history || []); // ✅ now using backend history only
+      } catch (err) {
+        console.error("❌ Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('prediction_result');
-    localStorage.removeItem('confidence_score');
-    navigate('/login');
+    ["token", "prediction_result", "confidence_score", "chosenAlignment"].forEach((k) =>
+      localStorage.removeItem(k)
+    );
+    navigate("/login");
   };
 
-  const handleTakeSurvey = () => {
-    navigate('/survey');
-  };
+  if (loading) {
+    return <p className="text-center mt-20">Loading dashboard...</p>;
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center mt-20 text-red-500">
+        No user data found. Please log in again.
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-lg mx-auto mt-16 p-6 bg-white rounded-lg shadow text-center">
-      <h2 className="text-2xl font-bold mb-4">Welcome to Your Dashboard</h2>
+    <div className="max-w-7xl mx-auto mt-16 p-6 bg-white dark:bg-slate-800 rounded-lg shadow space-y-10">
+      <h2 className="text-2xl font-bold text-center dark:text-white">
+        Welcome, {user.displayName || user.username}
+      </h2>
 
-      {prediction ? (
-        <div className="mb-6">
-          <p className="text-lg">Last Predicted Party:</p>
-          <p className="text-2xl font-bold text-blue-600">{prediction}</p>
-          {confidence && <p className="text-gray-500">Confidence: {confidence}%</p>}
-        </div>
-      ) : (
-        <p className="mb-6 text-gray-600">No prediction yet. Take the survey to get started.</p>
-      )}
+      {/* Profile + Alignment + Predicted Party */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ProfileCard user={user} />
 
-      <button
-        onClick={handleTakeSurvey}
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-4"
-      >
-        Take Survey
-      </button>
+        <PartyCard
+          partyCode={user.chosenAlignment as Party}
+          title="Your Alignment"
+        />
 
-      {prediction && (
+        <PartyCard
+          prediction={lastPrediction}
+          title="Predicted from Survey"
+          showRunnerUp
+        />
+      </div>
+
+      {/* Prediction History Timeline */}
+      <HistoryTimeline predictions={history} />
+
+      {/* Actions */}
+      <div className="flex justify-center gap-4">
         <button
-          onClick={() => navigate('/results')}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => navigate("/survey")}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
         >
-          View Results
+          Take Survey
         </button>
-      )}
 
-      <div className="mt-6">
+        {lastPrediction && (
+          <button
+            onClick={() => navigate("/results")}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            View Results
+          </button>
+        )}
+      </div>
+
+      {/* Logout */}
+      <div className="text-center">
         <button
           onClick={handleLogout}
           className="text-sm text-red-500 hover:underline"

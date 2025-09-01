@@ -18,7 +18,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { useAuth } from "@/context/useAuth"; 
+import auth from "@/context/useAuth";
 
 const predictionData = [
   { party: "Lab", share: 30, color: "#E4003B" },
@@ -101,7 +101,7 @@ const NationalPredictionCard = () => (
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth(); 
+const isLoggedIn = auth.isLoggedIn();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -222,11 +222,6 @@ const LandingPage: React.FC = () => {
         />
         <NationalPredictionCard />
       </div>
-
-      <p className="mt-12 text-sm text-gray-500 dark:text-gray-400">
-        🔒 We never share your data. All data is securely stored | Created ❤️ by
-        Destiny Jokomba
-      </p>
     </div>
   );
 };

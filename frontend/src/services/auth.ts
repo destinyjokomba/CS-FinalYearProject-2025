@@ -1,23 +1,25 @@
-import api from "./api";
+// src/services/auth.ts
+import type { User } from "@/types/auth";
 
-// Register user
-export const registerUser = async (form: {
-  first_name: string;
-  surname: string;
-  username: string;
-  email: string;
-  password: string;
-}) => {
-  return api.post("/auth/register", form);
-};
+export function saveAuth(token: string, user: User) {
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
+}
 
-// Login user
-export const loginUser = async (form: { username: string; password: string }) => {
-  const res = await api.post("/auth/login", form);
-  const token = res.data.token; 
-  if (token) {
-    localStorage.setItem("token", token);
-  }
+export function getToken(): string | null {
+  return localStorage.getItem("token");
+}
 
-  return res;
-};
+export function getUser(): User | null {
+  const stored = localStorage.getItem("user");
+  return stored ? (JSON.parse(stored) as User) : null;
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken();
+}
+
+export function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}

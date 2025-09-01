@@ -6,7 +6,15 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // no leading "./"
+      "@": path.resolve(__dirname, "src"), // alias to src
+    },
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom"],   // 👈 force pre-bundle these
+  },
+  build: {
+    commonjsOptions: {
+      include: [/react-dom/, /node_modules/], // safety for react-dom_client
     },
   },
 });

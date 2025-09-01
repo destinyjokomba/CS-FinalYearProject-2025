@@ -1,16 +1,19 @@
 // src/components/common/NavBar.tsx
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-import { useAuth } from "@/context/useAuth";
+import auth from "@/context/useAuth";
 
 const NavBar: React.FC = () => {
-  const { isLoggedIn, logout } = useAuth(); 
+  const navigate = useNavigate();
   const location = useLocation();
   const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isLoggedIn = auth.isLoggedIn();
+  const user = auth.getUser();
 
   useEffect(() => {
     if (darkMode) {
@@ -19,6 +22,12 @@ const NavBar: React.FC = () => {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  const handleLogout = () => {
+    auth.setUser(null);
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   const isLanding = location.pathname === "/";
 
@@ -33,7 +42,7 @@ const NavBar: React.FC = () => {
   const resolveLink = (to: string) => (isLoggedIn ? to : "/login");
 
   return (
-    <nav className="w-full bg-white dark:bg-slate-900 shadow-md fixed top-0 left-0 z-50">
+    <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 shadow">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-lg font-bold dark:text-white">
@@ -55,12 +64,21 @@ const NavBar: React.FC = () => {
           ))}
 
           {isLoggedIn ? (
-            <button
-              onClick={logout} // clean logout
-              className="px-3 py-1.5 rounded-md bg-red-500 text-white text-sm hover:bg-red-600 transition"
-            >
-              Logout
-            </button>
+            <>
+              {/* ✅ Show username when logged in */}
+              {user && (
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Hi, {user.displayName || user.username} 👋
+                </span>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 rounded-md bg-red-500 text-white text-sm hover:bg-red-600 transition"
+              >
+                Logout
+              </button>
+            </>
           ) : (
             isLanding && (
               <Link
@@ -107,12 +125,19 @@ const NavBar: React.FC = () => {
           ))}
 
           {isLoggedIn ? (
-            <button
-              onClick={logout} // ✅ works with redirect
-              className="w-full px-3 py-1.5 rounded-md bg-red-500 text-white text-sm"
-            >
-              Logout
-            </button>
+            <>
+              {user && (
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  Hi, {user.displayName || user.username} 👋
+                </p>
+              )}
+              <button
+                onClick={handleLogout}
+                className="w-full px-3 py-1.5 rounded-md bg-red-500 text-white text-sm"
+              >
+                Logout
+              </button>
+            </>
           ) : (
             isLanding && (
               <Link
