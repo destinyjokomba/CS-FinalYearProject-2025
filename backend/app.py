@@ -20,17 +20,6 @@ from werkzeug.utils import secure_filename
 
 from db import get_db_connection, get_cursor
 
-party_meta_bp = None
-try:
-    from backend.routes.party_meta import party_meta_bp as _bp  
-    party_meta_bp = _bp
-except Exception:
-    try:
-        from routes.party_meta import party_meta_bp as _bp  
-        party_meta_bp = _bp
-    except Exception:
-        party_meta_bp = None  # continue without it
-
 # ─── Load env ────────────────────────────────────────────────────────────────
 load_dotenv()
 
