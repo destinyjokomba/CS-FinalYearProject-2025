@@ -31,13 +31,14 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      await registerUser(
-        form.first_name,
-        form.surname,
-        form.email,
-        form.username,
-        form.password
-      );
+      await registerUser({
+  first_name: form.first_name,
+  surname: form.surname,
+  email: form.email,
+  username: form.username,
+  password: form.password,
+});
+
       navigate("/login");
     } catch {
       setError("Registration failed. Please try again.");
