@@ -14,7 +14,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   lab: {
     name: "Labour",
     color: "#E4003B",
-    logo: "/logos/labour.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/labour.png",
     slogan: "For the many, not the few",
     policies: ["NHS funding", "Workers' rights", "Welfare spending"],
     voters: "Younger voters, working-class, urban areas",
@@ -24,7 +24,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   con: {
     name: "Conservative",
     color: "#0087DC",
-    logo: "/logos/conservative.svg.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/conservative.svg.png",
     slogan: "Strong leadership, secure future",
     policies: ["Tax cuts", "Strong borders", "Free market economy"],
     voters: "Older voters, homeowners, rural and suburban areas",
@@ -34,7 +34,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   ld: {
     name: "Liberal Democrats",
     color: "#FAA61A",
-    logo: "/logos/libdem.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/libdem.png",
     slogan: "Demand better",
     policies: ["Pro-Europe", "Education investment", "Civil liberties"],
     voters: "Graduates, middle-income professionals, Remain voters",
@@ -44,7 +44,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   green: {
     name: "Green",
     color: "#6AB023",
-    logo: "/logos/green.svg.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/green.svg",
     slogan: "Fairer, Greener Future",
     policies: ["Climate action", "Renewable energy", "Social justice"],
     voters: "Young urban progressives, environmentalists",
@@ -54,7 +54,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   reform: {
     name: "Reform UK",
     color: "#12B6CF",
-    logo: "/logos/reform.svg.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/reform.svg",
     slogan: "Britain Deserves Better",
     policies: ["Immigration reform", "Cut red tape", "Lower taxes"],
     voters: "Right-leaning, anti-establishment voters",
@@ -64,7 +64,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   snp: {
     name: "SNP",
     color: "#FDF38E",
-    logo: "/logos/snp.svg.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/snp.svg",
     slogan: "Stronger for Scotland",
     policies: ["Scottish independence", "Public services", "Progressive tax"],
     voters: "Scottish voters, pro-independence supporters",
@@ -74,7 +74,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   other: {
     name: "Other",
     color: "#888888",
-    logo: "/logos/other.png",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/other.png",
     slogan: "Local voices matter",
     policies: ["Regional priorities", "Community issues"],
     voters: "Local and independent party supporters",
@@ -82,6 +82,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
       "A mix of smaller parties and independents representing local, regional, and community-based issues.",
   },
 };
+
 
 // Extra exports
 export const partyLabels = Object.fromEntries(
