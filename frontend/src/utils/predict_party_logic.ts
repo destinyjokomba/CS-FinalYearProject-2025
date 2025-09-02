@@ -1,3 +1,5 @@
+// src/utils/predict_party_logic.ts
+
 import { Party, PredictionResult } from "@/types/dashboard";
 import { partyLogic } from "@/utils/party_logic";
 
@@ -13,12 +15,16 @@ const baseScores: Record<Party, number> = {
 };
 
 // ───────────────────────────────
-// Main predictor (reads from partyLogic)
+// Main predictor
 // ───────────────────────────────
 export function predictParty(answers: Record<string, string>): PredictionResult {
   const scores: Record<Party, number> = { ...baseScores };
 
-  for (const [party, conditions] of Object.entries(partyLogic) as [Party, Record<string, Record<string, number>>][]) {
+  // Loop over each party and apply weights
+  for (const [party, conditions] of Object.entries(partyLogic) as [
+    Party,
+    Record<string, Record<string, number>>
+  ][]) {
     for (const [field, weightedAnswers] of Object.entries(conditions)) {
       const answer = answers[field];
       if (answer && weightedAnswers[answer] !== undefined) {
@@ -41,12 +47,12 @@ export function predictParty(answers: Record<string, string>): PredictionResult 
     winner = topParties[randomIndex][0] as Party;
   }
 
-  // Normalised probabilities (winner ~100%)
-  const maxScore = Math.max(...Object.values(scores), 1);
+  // Relative probabilities (distribution across all parties)
+  const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
   const probabilities = Object.fromEntries(
     Object.entries(scores).map(([party, score]) => [
       party,
-      parseFloat(((score / maxScore) * 100).toFixed(2)),
+      parseFloat(((score / total) * 100).toFixed(2)),
     ])
   ) as Record<Party, number>;
 
