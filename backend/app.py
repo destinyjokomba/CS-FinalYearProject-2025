@@ -30,9 +30,12 @@ app.config["CORS_SUPPORTS_CREDENTIALS"] = True
 
 # ─── CORS origins ───────────────────────────────────────────────────────────────
 _env_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
-allowed_origins = _env_origins or ["http://localhost:5173"]
 
-
+allowed_origins = _env_origins or [
+    "http://localhost:5173",
+    "http://destiny-election-predictor-frontend.s3-website.eu-north-1.amazonaws.com",
+    "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com"
+]
 
 CORS(
     app,
