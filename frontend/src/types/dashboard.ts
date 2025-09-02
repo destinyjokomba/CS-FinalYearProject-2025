@@ -47,6 +47,7 @@ export interface User {
   chosenAlignment?: string;
   dashboardParty?: string;
   profilePicUrl?: string | null; 
+  region?: string;
 }
 
 

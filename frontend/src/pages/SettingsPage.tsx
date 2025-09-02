@@ -28,7 +28,7 @@ const SettingsPage: React.FC = () => {
 
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
-  const [constituency, setConstituency] = useState("");
+  const [region, setRegion] = useState("");
   const [chosenAlignment, setChosenAlignment] = useState("");
   const [dashboardParty, setDashboardParty] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -40,15 +40,12 @@ const SettingsPage: React.FC = () => {
     if (storedUser) {
       setDisplayName(storedUser.displayName || "");
       setEmail(storedUser.email || "");
-      setConstituency(storedUser.constituency || "");
+      setRegion(storedUser.region || "");
       setChosenAlignment(storedUser.chosenAlignment || "");
       setDashboardParty(storedUser.dashboardParty || "");
+      setPreviewUrl(storedUser.profilePicUrl || null);
 
-      // ✅ Always check both user object and fallback storage
-      const storedPic =
-        storedUser.profilePicUrl || localStorage.getItem("profilePicUrl");
-      setPreviewUrl(storedPic || null);
-
+      // ✅ Load alignment fallback from localStorage if available
       const storedAlignment = localStorage.getItem("chosenAlignment");
       if (storedAlignment && !storedUser.chosenAlignment) {
         setChosenAlignment(storedAlignment);
@@ -69,11 +66,9 @@ const SettingsPage: React.FC = () => {
     setPreviewUrl(null);
     localStorage.removeItem("profilePicUrl");
 
-    // also clear from user object in localStorage
     const storedUser = auth.getUser();
     if (storedUser) {
       storedUser.profilePicUrl = null;
-
       auth.setUser(storedUser);
     }
   };
@@ -105,7 +100,6 @@ const SettingsPage: React.FC = () => {
         if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
         uploadedPicUrl = uploadData.profilePicUrl;
 
-        // ✅ Store fallback for persistence
         if (uploadedPicUrl) {
           localStorage.setItem("profilePicUrl", uploadedPicUrl);
         }
@@ -113,13 +107,12 @@ const SettingsPage: React.FC = () => {
 
       const body: Record<string, unknown> = {
         displayName,
-        constituency,
+        region,
         chosenAlignment,
         dashboardParty,
       };
       if (uploadedPicUrl) body.profilePicUrl = uploadedPicUrl;
       if (previewUrl === null && !profilePic) {
-        // Explicitly remove profile pic
         body.profilePicUrl = null;
       }
 
@@ -135,10 +128,8 @@ const SettingsPage: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save settings");
 
-      // ✅ Update user in auth
       auth.setUser(data.user as User);
 
-      // ✅ Handle clearing fallback if backend sets picture to null
       if (data.user && (data.user as User).profilePicUrl === null) {
         localStorage.removeItem("profilePicUrl");
         setPreviewUrl(null);
@@ -176,7 +167,7 @@ const SettingsPage: React.FC = () => {
             <img
               src={previewUrl}
               alt="Profile Preview"
-              className="w-20 h-20 rounded-full mb-3"
+              className="w-20 h-20 rounded-full mb-3 object-cover"
             />
           ) : (
             <div className="w-20 h-20 rounded-full bg-gray-200 mb-3" />
@@ -227,14 +218,14 @@ const SettingsPage: React.FC = () => {
             Region
           </label>
           <select
-            value={constituency}
-            onChange={(e) => setConstituency(e.target.value)}
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
             className="w-full border rounded-lg px-3 py-2 dark:bg-slate-700 dark:text-white"
           >
             <option value="">Select a region</option>
-            {regions.map((region) => (
-              <option key={region} value={region}>
-                {region}
+            {regions.map((r) => (
+              <option key={r} value={r}>
+                {r}
               </option>
             ))}
           </select>
