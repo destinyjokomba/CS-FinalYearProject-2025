@@ -40,7 +40,7 @@ const ResultsPage: React.FC = () => {
     [answers]
   );
 
-  // ✅ Cast winner to Party
+  // Cast winner to Party
   const partyKey = winner as Party;
   const display = partyDisplayMap[partyKey];
   const confidence = probabilities[partyKey] || 0;

@@ -11,6 +11,7 @@ import ProgressOverview from "@/components/dashboard/ProgressOverview";
 import MiniQuiz from "@/components/dashboard/MiniQuiz";
 import { regionalVoteShare, Region } from "@/utils/regionalData";
 import UserStats from "@/components/dashboard/UserStats";
+import { API_URL } from "@/config";
 
 import {
   User,
@@ -33,7 +34,7 @@ const DashboardPage: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         if (token) {
-          const res = await fetch("http://localhost:5001/me/dashboard", {
+          const res = await fetch(`${API_URL}/me/dashboard`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
@@ -41,7 +42,7 @@ const DashboardPage: React.FC = () => {
             setUser(data.user || null);
             setBadges(data.badges || []);
 
-            // ✅ Save alignment fallback to localStorage
+            //  Save alignment fallback to localStorage
             if (data.user?.chosenAlignment) {
               localStorage.setItem("chosenAlignment", data.user.chosenAlignment);
             }

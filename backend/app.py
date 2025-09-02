@@ -28,13 +28,11 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecretkey")
 app.config["CORS_SUPPORTS_CREDENTIALS"] = True
 
-# CORS origins
+# ─── CORS origins ───────────────────────────────────────────────────────────────
 _env_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
-allowed_origins = _env_origins or [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://election-predictor-frontend.onrender.com",
-]
+allowed_origins = _env_origins or ["http://localhost:5173"]
+
+
 
 CORS(
     app,

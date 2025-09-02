@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { partyDisplayMap } from "../utils/predict_party_logic";
 import { Prediction, Party } from "@/types/dashboard";
+import { API_URL } from "@/config";
+
 const PredictionDashboard = () => {
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ const PredictionDashboard = () => {
       }
 
       try {
-        const res = await fetch("http://localhost:5001/me/prediction", {
+        const res = await fetch(`${API_URL}/me/prediction`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

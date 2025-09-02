@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { QUESTIONS, Question } from "../../data/surveyOptions";
+import { API_URL } from "@/config";
+
+
 
 const SurveyContainer: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +41,7 @@ const SurveyContainer: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:5001/predict", {
+      const res = await fetch(`${API_URL}/predict`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

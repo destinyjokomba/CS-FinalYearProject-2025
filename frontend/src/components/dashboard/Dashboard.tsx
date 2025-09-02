@@ -4,6 +4,7 @@ import PartyCard from "@/components/dashboard/PartyCard";
 import ProfileCard from "@/components/dashboard/ProfileCard";
 import HistoryTimeline from "@/components/dashboard/HistoryTimeline";
 import { Party, Prediction, User } from "@/types/dashboard";
+import { API_URL } from "@/config";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Dashboard: React.FC = () => {
       }
 
       try {
-        const res = await fetch("http://localhost:5001/me/dashboard", {
+        const res = await fetch(`${API_URL}/me/dashboard`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
