@@ -53,3 +53,7 @@ src/**/*.js.map
 # ─── Backup/duplicate artifacts ─────────────────
 *\ 2*
 *~
+
+# Ignore any accidental JS in src (only keep TS)
+src/**/*.js
+src/**/*.js.map

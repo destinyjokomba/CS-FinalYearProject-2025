@@ -17,7 +17,9 @@
 
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+
+    "noEmit": true             
   },
   "include": [
     "src",
