@@ -9,7 +9,7 @@ venv/
 *.db
 *.sqlite3
 *.log
-
+backend/logs/
 # ML models & data
 backend/data/processed/
 backend/data/tmp/
@@ -19,12 +19,18 @@ backend/models/*.pkl
 !backend/models/final_model.pkl
 backend/models/__pycache__/
 
+# Uploads (keep folder, ignore files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # ─── Node/React Frontend ─────────────────────────
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 frontend/build/
 frontend/.next/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
 
 # ─── Mac / OS junk ──────────────────────────────
 .DS_Store
@@ -44,12 +50,9 @@ Thumbs.db
 *\ 2*
 *~
 
-# Ignore Mac + Python junk
-.DS_Store
-__pycache__/
-*.pyc
 
+git rm -r --cached .
 
-# Node modules
-node_modules/
+git add .
+
 

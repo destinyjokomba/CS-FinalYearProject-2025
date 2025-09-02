@@ -18,7 +18,7 @@ from psycopg2.extras import RealDictCursor
 from psycopg2.errors import UniqueViolation
 from werkzeug.utils import secure_filename
 
-from backend.db import get_db_connection, get_cursor
+from db import get_db_connection, get_cursor
 
 # ─── Load env ────────────────────────────────────────────────────────────────
 load_dotenv()
