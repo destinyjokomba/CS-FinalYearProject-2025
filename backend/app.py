@@ -72,6 +72,17 @@ def list_routes():
     routes.sort(key=lambda x: x["rule"])
     return jsonify(routes)
 
+
+
+@app.route("/train", methods=["POST"])
+def train_model():
+    import subprocess
+    result = subprocess.run(
+    ["python", "backend/models/train_model_2028.py"], capture_output=True, text=True
+)
+    return {"status": "done", "stdout": result.stdout, "stderr": result.stderr}
+
+
 # ─── DB helper ───────────────────────────────────────────────────────────────
 def get_db_connection():
     url = os.getenv("DATABASE_URL")
