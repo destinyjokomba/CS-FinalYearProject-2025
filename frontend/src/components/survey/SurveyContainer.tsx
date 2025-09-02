@@ -1,9 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { QUESTIONS, Question } from "../../data/surveyOptions";
-import { API_URL } from "@/config";
-
-
+import { QUESTIONS, Question } from "@/data/surveyOptions";
+import { submitSurvey } from "@/services/api";
 
 const SurveyContainer: React.FC = () => {
   const navigate = useNavigate();
@@ -16,50 +14,16 @@ const SurveyContainer: React.FC = () => {
   const handleSelect = (value: string) => {
     setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.fieldName]: value.toLowerCase(), // normalize
+      [currentQuestion.fieldName]: value.toLowerCase(),
     }));
   };
 
-  const handleNext = () => {
-    if (currentIndex < QUESTIONS.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
-
   const handleSubmit = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/predict`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(answers),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        console.log("✅ Prediction response:", data);
-        // Save locally in case ResultsPage needs fallback
-        localStorage.setItem("prediction_result", JSON.stringify(data));
-        navigate("/results");
-      } else {
-        alert(data.error || "Something went wrong while predicting.");
-      }
+      const data = await submitSurvey(answers);
+      localStorage.setItem("prediction_result", JSON.stringify(data));
+      navigate("/results");
     } catch (err) {
       console.error("❌ Submit failed:", err);
       alert("Prediction failed. Please try again.");
@@ -75,7 +39,6 @@ const SurveyContainer: React.FC = () => {
           {currentQuestion.text}
         </h2>
 
-        {/* Dropdown */}
         <select
           id={currentQuestion.fieldName}
           name={currentQuestion.fieldName}
@@ -91,10 +54,9 @@ const SurveyContainer: React.FC = () => {
           ))}
         </select>
 
-        {/* Buttons */}
         <div className="mt-6 flex justify-between">
           <button
-            onClick={handleBack}
+            onClick={() => setCurrentIndex((prev) => prev - 1)}
             disabled={currentIndex === 0}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
           >
@@ -103,7 +65,7 @@ const SurveyContainer: React.FC = () => {
 
           {currentIndex < QUESTIONS.length - 1 ? (
             <button
-              onClick={handleNext}
+              onClick={() => setCurrentIndex((prev) => prev + 1)}
               disabled={!answers[currentQuestion.fieldName]}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >

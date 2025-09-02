@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from "react";
 import ProfileCard from "@/components/dashboard/ProfileCard";
 import PartyCard from "@/components/dashboard/PartyCard";
@@ -9,10 +8,8 @@ import NationalTrends from "@/components/dashboard/NationalTrends";
 import Leaderboard from "@/components/dashboard/Leaderboard";
 import ProgressOverview from "@/components/dashboard/ProgressOverview";
 import MiniQuiz from "@/components/dashboard/MiniQuiz";
-import { regionalVoteShare, Region } from "@/utils/regionalData";
 import UserStats from "@/components/dashboard/UserStats";
-import { API_URL } from "@/config";
-
+import { getDashboard } from "@/services/api";
 import {
   User,
   Prediction,
@@ -20,6 +17,7 @@ import {
   Badge,
   Party,
 } from "@/types/dashboard";
+import { regionalVoteShare, Region } from "@/utils/regionalData";
 
 const DashboardPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -30,23 +28,14 @@ const DashboardPage: React.FC = () => {
   const [selectedRegion, setSelectedRegion] = useState<Region>("London");
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (token) {
-          const res = await fetch(`${API_URL}/me/dashboard`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUser(data.user || null);
-            setBadges(data.badges || []);
+        const data = await getDashboard();
+        setUser(data.user || null);
+        setBadges(data.badges || []);
 
-            //  Save alignment fallback to localStorage
-            if (data.user?.chosenAlignment) {
-              localStorage.setItem("chosenAlignment", data.user.chosenAlignment);
-            }
-          }
+        if (data.user?.chosenAlignment) {
+          localStorage.setItem("chosenAlignment", data.user.chosenAlignment);
         }
       } catch (err) {
         console.error("❌ Dashboard fetch error:", err);
@@ -55,7 +44,7 @@ const DashboardPage: React.FC = () => {
       }
     };
 
-    fetchDashboard();
+    fetchData();
 
     const storedPrediction = localStorage.getItem("lastPrediction");
     if (storedPrediction) setLastPrediction(JSON.parse(storedPrediction));
@@ -97,7 +86,6 @@ const DashboardPage: React.FC = () => {
 
   const regionData = formatRegionData(selectedRegion);
 
-  // ✅ Use either backend alignment or fallback from localStorage
   const alignmentParty =
     (user.chosenAlignment as Party) ||
     (localStorage.getItem("chosenAlignment") as Party);
@@ -107,10 +95,7 @@ const DashboardPage: React.FC = () => {
       <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         <ProfileCard user={user} />
 
-        <div
-          className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6"
-          data-testid="dashboard-alignment-title"
-        >
+        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
           <PartyCard partyCode={alignmentParty} title="Your Alignment" />
           <PartyCard prediction={lastPrediction} title="Predicted from Survey" showRunnerUp />
         </div>
@@ -146,7 +131,6 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <MiniQuiz />
-
         <div className="md:col-span-3">
           <NationalTrends />
         </div>

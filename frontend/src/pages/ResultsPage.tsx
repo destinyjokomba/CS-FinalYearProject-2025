@@ -1,9 +1,9 @@
-// src/pages/ResultsPage.tsx
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Party } from "@/types/dashboard";
 import { partyDisplayMap } from "@/utils/partyMap";
 import { predictParty } from "@/utils/predict_party_logic";
+import { getPrediction } from "@/services/api";
 import {
   BarChart,
   Bar,
@@ -23,63 +23,84 @@ interface PredictionHistoryItem {
 
 const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [winner, setWinner] = useState<Party | null>(null);
+  const [probabilities, setProbabilities] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
 
-  // Load survey answers
-  const [answers] = useState<Record<string, string>>(() => {
-    try {
-      const stored = localStorage.getItem("surveyAnswers");
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
+  useEffect(() => {
+    const storedAnswers = localStorage.getItem("surveyAnswers");
+
+    if (storedAnswers) {
+      const parsed = JSON.parse(storedAnswers);
+      const { winner, probabilities } = predictParty(parsed);
+      setWinner(winner as Party);
+      setProbabilities(probabilities);
+      setLoading(false);
+    } else {
+      getPrediction()
+        .then((pred) => {
+          if (pred) {
+            setWinner(pred.party as Party);
+            setProbabilities({ [pred.party]: pred.confidence || 0 });
+          }
+        })
+        .catch((err) => console.error("❌ Failed to fetch prediction:", err))
+        .finally(() => setLoading(false));
     }
-  });
+  }, []);
 
-  // Run prediction
-  const { winner, probabilities } = useMemo(
-    () => predictParty(answers),
-    [answers]
-  );
-
-  // Cast winner to Party
-  const partyKey = winner as Party;
-  const display = partyDisplayMap[partyKey];
-  const confidence = probabilities[partyKey] || 0;
-
-  const chartData = Object.entries(probabilities).map(([party, prob]) => {
-    const p = party as Party;
-    return { party: p, prob, color: partyDisplayMap[p].color };
-  });
-
-  // Save prediction + track party changes
   useEffect(() => {
     if (!winner) return;
 
     const newEntry: PredictionHistoryItem = {
-      party: partyKey,
-      confidence,
+      party: winner,
+      confidence: probabilities[winner] || 0,
       timestamp: new Date().toISOString(),
     };
 
     const stored = localStorage.getItem("predictionHistory");
     const history: PredictionHistoryItem[] = stored ? JSON.parse(stored) : [];
 
-    // Detect party change
-    if (history.length > 0 && history[0].party !== partyKey) {
+    if (history.length > 0 && history[0].party !== winner) {
       incrementPartyChangeCount();
     }
 
-    // Save lastPrediction + history
     localStorage.setItem("lastPrediction", JSON.stringify(newEntry));
     localStorage.setItem(
       "predictionHistory",
       JSON.stringify([newEntry, ...history].slice(0, 20))
     );
-  }, [winner, confidence, partyKey]);
+  }, [winner, probabilities]);
+
+  if (loading) {
+    return <p className="text-center mt-20">Loading prediction...</p>;
+  }
+
+  if (!winner) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h2 className="text-xl font-bold">No prediction available</h2>
+        <button
+          onClick={() => navigate("/survey")}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Take Survey
+        </button>
+      </div>
+    );
+  }
+
+  const display = partyDisplayMap[winner];
+  const confidence = probabilities[winner] || 0;
+
+  const chartData = Object.entries(probabilities).map(([party, prob]) => ({
+    party,
+    prob,
+    color: partyDisplayMap[party as Party].color,
+  }));
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-6">
-      
-      {/* Prediction Card */}
       <div
         className="rounded-2xl shadow-lg p-8 max-w-2xl w-full text-center mb-10"
         style={{ backgroundColor: display.color }}
@@ -91,50 +112,32 @@ const ResultsPage: React.FC = () => {
           Based on your answers, you are most likely to support{" "}
           <span className="font-semibold">{display.name}</span>.
         </p>
-
-        {/* Show slogan instead of description */}
-        <p className="mt-2 text-white/90 text-sm italic">
-          {display.slogan}
-        </p>
-
+        <p className="mt-2 text-white/90 text-sm italic">{display.slogan}</p>
         <p className="mt-3 text-white font-medium">
-          Confidence: {confidence.toFixed(1)}%
+          Confidence: {confidence.toFixed(1)}% (
+          {confidence >= 50 ? "High" : "Low"} confidence)
         </p>
+      </div>
 
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            onClick={() => navigate("/survey")}
-            className="px-5 py-2 rounded-lg bg-white text-gray-800 shadow hover:bg-gray-200"
-          >
-            Retake Survey
-          </button>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="px-5 py-2 rounded-lg bg-white text-gray-800 shadow hover:bg-gray-200"
-          >
-            View Dashboard
-          </button>
+      {chartData.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full">
+          <h2 className="text-lg font-semibold text-center mb-4">
+            Probability Breakdown
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart layout="vertical" data={chartData}>
+              <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+              <YAxis type="category" dataKey="party" width={120} />
+              <Tooltip formatter={(value: number) => `${value}%`} />
+              <Bar dataKey="prob" radius={[0, 4, 4, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
-      </div>
-
-      {/* Probability Breakdown */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full">
-        <h2 className="text-lg font-semibold text-center mb-4">
-          Probability Breakdown
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart layout="vertical" data={chartData}>
-            <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-            <YAxis type="category" dataKey="party" width={120} />
-            <Tooltip formatter={(value: number) => `${value}%`} />
-            <Bar dataKey="prob" radius={[0, 4, 4, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      )}
     </div>
   );
 };

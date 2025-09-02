@@ -1,7 +1,6 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { loginUser } from "@/services/api";
+import auth from "@/context/useAuth";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,23 +16,9 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await loginUser(username.trim(), password);
+      const res = await auth.login(username.trim(), password);
 
-      // Only clear if this is a fresh login
-      if (!localStorage.getItem("user")) {
-        localStorage.clear();
-      }
-
-      // Save token + user
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      // ✅ Save alignment separately so it persists
-      if (res.data.user.chosenAlignment) {
-        localStorage.setItem("chosenAlignment", res.data.user.chosenAlignment);
-      }
-
-      if (!res.data.user.profileCompletion || res.data.user.profileCompletion < 1) {
+      if (!res.user.profileCompletion || res.user.profileCompletion < 1) {
         navigate("/survey");
       } else {
         navigate("/dashboard");
