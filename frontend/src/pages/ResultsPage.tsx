@@ -2,7 +2,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Party } from "@/types/dashboard";
-import { predictParty, partyDisplayMap } from "@/utils/predict_party_logic";
+import { partyDisplayMap } from "@/utils/partyMap";
+import { predictParty } from "@/utils/predict_party_logic";
 import {
   BarChart,
   Bar,
@@ -12,9 +13,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import {
-  incrementPartyChangeCount,
-} from "@/utils/stats";
+import { incrementPartyChangeCount } from "@/utils/stats";
 
 interface PredictionHistoryItem {
   party: Party;
@@ -41,8 +40,10 @@ const ResultsPage: React.FC = () => {
     [answers]
   );
 
-  const display = partyDisplayMap[winner as Party];
-  const confidence = probabilities[winner as Party] || 0;
+  // ✅ Cast winner to Party
+  const partyKey = winner as Party;
+  const display = partyDisplayMap[partyKey];
+  const confidence = probabilities[partyKey] || 0;
 
   const chartData = Object.entries(probabilities).map(([party, prob]) => {
     const p = party as Party;
@@ -54,7 +55,7 @@ const ResultsPage: React.FC = () => {
     if (!winner) return;
 
     const newEntry: PredictionHistoryItem = {
-      party: winner,
+      party: partyKey,
       confidence,
       timestamp: new Date().toISOString(),
     };
@@ -63,7 +64,7 @@ const ResultsPage: React.FC = () => {
     const history: PredictionHistoryItem[] = stored ? JSON.parse(stored) : [];
 
     // Detect party change
-    if (history.length > 0 && history[0].party !== winner) {
+    if (history.length > 0 && history[0].party !== partyKey) {
       incrementPartyChangeCount();
     }
 
@@ -73,7 +74,7 @@ const ResultsPage: React.FC = () => {
       "predictionHistory",
       JSON.stringify([newEntry, ...history].slice(0, 20))
     );
-  }, [winner, confidence]);
+  }, [winner, confidence, partyKey]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-6">
@@ -90,9 +91,12 @@ const ResultsPage: React.FC = () => {
           Based on your answers, you are most likely to support{" "}
           <span className="font-semibold">{display.name}</span>.
         </p>
-        {display.description && (
-          <p className="mt-2 text-white/90 text-sm">{display.description}</p>
-        )}
+
+        {/* Show slogan instead of description */}
+        <p className="mt-2 text-white/90 text-sm italic">
+          {display.slogan}
+        </p>
+
         <p className="mt-3 text-white font-medium">
           Confidence: {confidence.toFixed(1)}%
         </p>

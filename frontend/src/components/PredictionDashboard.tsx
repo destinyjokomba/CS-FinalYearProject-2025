@@ -1,9 +1,8 @@
 // src/components/PredictionDashboard.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { partyDisplayMap, Party } from "../utils/predict_party_logic";
-import { Prediction } from "@/types/dashboard"; // ✅ uses global Prediction type (already party: Party)
-
+import { partyDisplayMap } from "../utils/predict_party_logic";
+import { Prediction, Party } from "@/types/dashboard";
 const PredictionDashboard = () => {
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [loading, setLoading] = useState(true);

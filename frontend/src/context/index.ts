@@ -1,3 +1,3 @@
 // src/context/index.ts
 export * from "./useAuth";
-export { useAuth } from "./useAuth";
+export { default as useAuth } from "./useAuth";

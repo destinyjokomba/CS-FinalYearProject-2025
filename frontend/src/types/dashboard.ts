@@ -1,6 +1,6 @@
 // src/types/dashboard.ts
 
-// ✅ single source of truth
+// ✅ Only ONE definition
 export type Party =
   | "lab"     // Labour
   | "con"     // Conservative
@@ -9,11 +9,6 @@ export type Party =
   | "reform"  // Reform UK
   | "snp"     // SNP
   | "other";  // Other
-
-export interface PredictionResult {
-  winner: Party;
-  probabilities: Record<Party, number>;
-}
 
 export interface Prediction {
   party: Party;
@@ -52,7 +47,6 @@ export interface User {
   profilePicUrl?: string; 
   region?: string;   
 }
-
 
 export interface Badge {
   name: string;
