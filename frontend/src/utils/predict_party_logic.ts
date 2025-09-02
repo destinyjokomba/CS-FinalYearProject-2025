@@ -1,88 +1,6 @@
 import { Party, PredictionResult } from "@/types/dashboard";
 
-// Long names → short codes
-export const partyCodeMap: Record<string, Party> = {
-  "Labour": "lab",
-  "Conservative": "con",
-  "Liberal Democrats": "ld",
-  "Green": "green",
-  "Reform": "reform",
-  "Reform UK": "reform", 
-  "SNP": "snp",
-  "Other": "other",
-};
-
-// Party display info
-export const partyDisplayMap: Record<
-  Party,
-  {
-    name: string;
-    color: string;
-    description: string;
-    logo: string;
-    slogan: string;
-    demographics: string;
-  }
-> = {
-  lab: {
-    name: "Labour",
-    color: "#E4003B",
-    description: "Centre-left, focused on social equality and welfare spending.",
-    logo: "/logos/labour.png",
-    slogan: "For the many, not the few",
-    demographics: "Younger voters, renters, working-class, public sector workers.",
-  },
-  con: {
-    name: "Conservative",
-    color: "#0087DC",
-    description: "Centre-right, focused on free markets and traditional values.",
-    logo: "/logos/conservative.svg.png",
-    slogan: "Strong leadership, secure future",
-    demographics: "Older voters, homeowners, higher-income earners, rural areas.",
-  },
-  reform: {
-    name: "Reform UK",
-    color: "#12B6CF",
-    description: "Right-wing, anti-establishment and focused on immigration reform.",
-    logo: "/logos/reform.svg.png",
-    slogan: "Let’s take back control",
-    demographics: "Disaffected Conservative voters, anti-EU, older men, working-class.",
-  },
-  ld: {
-    name: "Liberal Democrats",
-    color: "#FAA61A",
-    description: "Centrist, liberal policies, pro-Europe and civil liberties.",
-    logo: "/logos/libdem.png",
-    slogan: "Demand better",
-    demographics: "Educated professionals, pro-EU, suburban and southern England voters.",
-  },
-  green: {
-    name: "Green",
-    color: "#6AB023",
-    description: "Environmentalist, progressive on social and climate issues.",
-    logo: "/logos/green.svg.png",
-    slogan: "People. Planet. Politics.",
-    demographics: "Students, urban professionals, climate activists, progressive younger voters.",
-  },
-  snp: {
-    name: "SNP",
-    color: "#FDF38E",
-    description: "Scottish nationalist, centre-left, pro-independence.",
-    logo: "/logos/snp.svg.png",
-    slogan: "Stronger for Scotland",
-    demographics: "Scottish voters, pro-independence, younger progressive voters.",
-  },
-  other: {
-    name: "Other",
-    color: "#888888",
-    description: "Smaller regional or independent parties.",
-    logo: "/logos/other.png",
-    slogan: "Local voices matter",
-    demographics: "Niche or regional communities, independents.",
-  },
-};
-
-// ⚖️ Balanced starting scores (no bias)
+// Base scores
 const baseScores: Record<Party, number> = {
   lab: 0,
   con: 0,
@@ -97,64 +15,80 @@ const baseScores: Record<Party, number> = {
 // Party-specific scoring functions
 // ───────────────────────────────
 
-// Reform UK
-function applyReform(answers: Record<string, string>, score: number): number {
-  if (answers.household_income === "under £20,000") score += 3;
-  if (answers.education_level === "no qualification") score += 3;
-  if (answers.tax_on_wealthy === "no") score += 4;
-  if (["restrictive", "very restrictive"].includes(answers.immigration_policy_stance)) score += 6;
-  if (answers.concern_political_corruption === "very concerned") score += 3;
-  return score;
-}
-
-// Green
-function applyGreen(answers: Record<string, string>, score: number): number {
-  if (answers.climate_priority === "yes") score += 8;
-  if (answers.importance_social_issues === "very important") score += 4;
-  if (answers.housing_status === "renter") score += 2;
-  if (answers.immigration_policy_stance === "more open") score += 3;
-  return score;
-}
-
 // Labour
 function applyLabour(answers: Record<string, string>, score: number): number {
-  if (answers.household_income === "£20,000–£40,000") score += 3;
-  if (answers.housing_status === "council housing" || answers.housing_status === "renter") score += 3;
-  if (answers.support_welfare_spending === "yes") score += 4;
-  if (answers.tax_on_wealthy === "yes") score += 4;
-  if (answers.immigration_policy_stance === "more open") score += 3;
+  if (["Renting", "Council housing", "Living with family"].includes(answers.housing_status)) score += 3;
+  if (answers.support_welfare_spending === "Yes") score += 3;
+  if (answers.tax_on_wealthy === "Yes") score += 3;
+  if (["Dissatisfied", "Very dissatisfied"].includes(answers.satisfaction_national_government)) score += 2;
+  if (["Low", "Neutral"].includes(answers.trust_mainstream_media)) score += 2;
+  if (["Low", "Neutral"].includes(answers.trust_public_institutions)) score += 2;
   return score;
 }
 
 // Conservative
 function applyConservative(answers: Record<string, string>, score: number): number {
-  if (answers.household_income === "£60,000-£80,000" || answers.household_income === "£80,000 +") score += 4;
-  if (answers.housing_status === "homeowner") score += 3;
-  if (answers.tax_on_wealthy === "no") score += 3;
-  if (answers.immigration_policy_stance === "restrictive") score += 4;
+  if (["Bachelor’s degree", "Master’s degree", "PhD or higher"].includes(answers.education_level)) score += 3;
+  if (["£60,000–£80,000", "£80,000–£100,000", "Over £100,000"].includes(answers.household_income)) score += 3;
+  if (["Restrictive", "Very restrictive"].includes(answers.immigration_policy_stance)) score += 3;
+  if (["Dissatisfied", "Very dissatisfied"].includes(answers.satisfaction_national_government)) score += 2; // unhappy right now
+  if (answers.importance_economy === "Not important") score += 2;
+  if (answers.importance_social_issues === "Not important") score += 2;
   return score;
 }
 
-// Lib Dem
+// Liberal Democrats
 function applyLibDem(answers: Record<string, string>, score: number): number {
-  if (["bachelors degree","masters degree","phd or higher"].includes(answers.education_level)) score += 3;
+  if (["Bachelor’s degree", "Master’s degree", "PhD or higher"].includes(answers.education_level)) score += 3;
   if (answers.household_income === "£40,000–£60,000") score += 2;
-  if (answers.immigration_policy_stance === "more open") score += 2;
+  if (["35–44", "45–54"].includes(answers.age_bracket)) score += 2;
+  if (answers.satisfaction_national_government === "Neutral") score += 1;
+  if (answers.importance_economy === "Somewhat important") score += 2;
+  if (answers.importance_social_issues === "Somewhat important") score += 2;
+  if (answers.concern_political_corruption === "Somewhat concerned") score += 2;
+  return score;
+}
+
+// Green
+function applyGreen(answers: Record<string, string>, score: number): number {
+  if (["18–24", "25–34"].includes(answers.age_bracket)) score += 3;
+  if (["Renting", "Living with family"].includes(answers.housing_status)) score += 2;
+  if (["Working class", "Lower-middle class"].includes(answers.socioeconomic_class)) score += 2;
+  if (answers.satisfaction_national_government === "Very dissatisfied") score += 2;
+  if (answers.importance_economy === "Very important") score += 2;
+  if (answers.importance_social_issues === "Very important") score += 2;
+  if (answers.concern_political_corruption === "Very concerned") score += 2;
+  return score;
+}
+
+// Reform UK
+function applyReform(answers: Record<string, string>, score: number): number {
+  if (["No qualification", "GCSE or equivalent"].includes(answers.education_level)) score += 3;
+  if (["Under £20,000", "£20,000–£40,000"].includes(answers.household_income)) score += 2;
+  if (answers.socioeconomic_class === "Working class") score += 2;
+  if (answers.satisfaction_national_government === "Very dissatisfied") score += 2;
+  if (answers.importance_economy === "Important") score += 2;
+  if (answers.importance_social_issues === "Not important") score += 2;
+  if (answers.support_welfare_spending === "No") score += 2;
+  if (["High", "Very high"].includes(answers.trust_mainstream_media)) score += 2;
+  if (answers.concern_political_corruption === "Very concerned") score += 2;
+  if (["High", "Very high"].includes(answers.trust_public_institutions)) score += 2;
+  if (["Restrictive", "Very restrictive"].includes(answers.immigration_policy_stance)) score += 4;
   return score;
 }
 
 // SNP
 function applySNP(answers: Record<string, string>, score: number): number {
-  if (answers.region_boost === "Scotland" || answers.constituency_leaning === "snp") score += 8;
-  if (answers.climate_priority === "yes") score += 2;
-  if (answers.immigration_policy_stance === "more open") score += 2;
+  if (answers.region_boost === "Scotland" || answers.constituency_leaning === "snp") score += 5;
+  if (answers.support_welfare_spending === "Yes") score += 2;
+  if (answers.climate_priority === "Yes") score += 2;
+  if (answers.immigration_policy_stance === "More open") score += 1;
   return score;
 }
 
 // Other
 function applyOther(answers: Record<string, string>, score: number): number {
-  if (answers.constituency_leaning === "other") score += 4;
-  if (answers.region_boost === "Wales") score += 4; // Plaid Cymru example
+  if (answers.constituency_leaning === "other") score += 3;
   return score;
 }
 
@@ -181,17 +115,16 @@ export function predictParty(answers: Record<string, string>): PredictionResult 
   if (topParties.length === 1) {
     winner = topParties[0][0] as Party;
   } else {
-    // 🎲 Random tie-break instead of hard bias
     const randomIndex = Math.floor(Math.random() * topParties.length);
     winner = topParties[randomIndex][0] as Party;
   }
 
-  // Normalised probabilities
-  const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
+  // Relative probabilities (winner ≈ 100%)
+  const maxScore = Math.max(...Object.values(scores), 1);
   const probabilities = Object.fromEntries(
     Object.entries(scores).map(([party, score]) => [
       party,
-      parseFloat(((score / total) * 100).toFixed(2)),
+      parseFloat(((score / maxScore) * 100).toFixed(2)),
     ])
   ) as Record<Party, number>;
 

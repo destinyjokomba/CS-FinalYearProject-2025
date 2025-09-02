@@ -1,4 +1,3 @@
-// src/utils/partyMap.ts
 import { Party } from "@/types/dashboard";
 
 export interface PartyMetadata {
