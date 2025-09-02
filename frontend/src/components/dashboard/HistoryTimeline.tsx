@@ -1,5 +1,5 @@
 import React from "react";
-import { partyDisplayMap } from "@/utils/predict_party_logic";
+import { partyDisplayMap } from "@/utils/partyMap";
 import { Party, Prediction } from "@/types/dashboard";
 import { Link } from "react-router-dom";
 

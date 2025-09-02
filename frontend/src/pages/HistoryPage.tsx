@@ -1,7 +1,7 @@
 // src/pages/HistoryPage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { partyDisplayMap } from "@/utils/predict_party_logic";
+import { partyDisplayMap } from "@/utils/partyMap";
 import { Party, Prediction } from "@/types/dashboard";
 import { motion } from "framer-motion";
 
