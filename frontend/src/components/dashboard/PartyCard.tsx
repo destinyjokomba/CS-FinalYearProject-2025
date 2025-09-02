@@ -100,15 +100,22 @@ const PartyCard: React.FC<PartyCardProps> = ({
         )}
 
         {confidence !== null && confidence < 50 && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 p-3 rounded text-sm mt-3">
-            <p className="text-yellow-700 dark:text-yellow-200 font-semibold">
-              ⚠️ Low Confidence Prediction
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 mt-1">
-              This prediction is below 50% confidence.
-            </p>
-          </div>
-        )}
+  <div className="bg-yellow-50 dark:bg-yellow-900/40 border-l-4 border-yellow-400 p-3 rounded text-sm mt-3">
+    <p className="text-yellow-700 dark:text-yellow-200 font-semibold">
+      ⚠️ Low Confidence Prediction
+    </p>
+    <p className="text-gray-700 dark:text-gray-300 mt-1">
+      This prediction is below 50% confidence. Confidence values can appear lower 
+      because our model is trained against <strong>all 7 main political parties</strong> 
+      rather than just the top 2–3. This means your answers are compared across a 
+      wider set of possible outcomes, which increases competition between parties. 
+      While this lowers the confidence percentage, it makes the prediction more 
+      <strong>balanced, realistic, and representative</strong> of the full UK political 
+      landscape.
+    </p>
+  </div>
+)}
+
       </div>
     );
   }

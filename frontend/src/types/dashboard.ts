@@ -43,7 +43,6 @@ export interface User {
   username: string;
   email: string;
   displayName?: string;
-  constituency?: string;
   chosenAlignment?: string;
   dashboardParty?: string;
   profilePicUrl?: string | null; 
