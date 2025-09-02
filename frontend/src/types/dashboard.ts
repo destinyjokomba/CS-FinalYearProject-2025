@@ -49,7 +49,8 @@ export interface User {
   constituency?: string;     
   chosenAlignment?: string;   
   dashboardParty?: string;    
-  profilePicUrl?: string;    
+  profilePicUrl?: string; 
+  region?: string;   
 }
 
 

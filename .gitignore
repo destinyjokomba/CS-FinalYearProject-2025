@@ -41,6 +41,9 @@ frontend/cypress/screenshots/
 .Trashes
 ehthumbs.db
 Thumbs.db
+# ─── Prevent accidental compiled JS in TypeScript src ───────────────
+src/**/*.js
+src/**/*.js.map
 
 # ─── IDE / Editor junk ──────────────────────────
 .vscode/
