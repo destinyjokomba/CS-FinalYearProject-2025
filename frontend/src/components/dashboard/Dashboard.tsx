@@ -4,7 +4,7 @@ import PartyCard from "@/components/dashboard/PartyCard";
 import ProfileCard from "@/components/dashboard/ProfileCard";
 import HistoryTimeline from "@/components/dashboard/HistoryTimeline";
 import { Party, Prediction, User } from "@/types/dashboard";
-import { API_URL } from "@/config";
+import { getDashboard } from "@/services/api";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -16,32 +16,16 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchDashboard = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
       try {
-        const res = await fetch(`${API_URL}/me/dashboard`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          console.error("❌ Failed to load dashboard");
-          if (res.status === 401) navigate("/login");
-          return;
-        }
-
-        const data = await res.json();
+        const data = await getDashboard();
         setUser(data.user || null);
         setLastPrediction(data.lastPrediction || null);
-        setHistory(data.history || []); // ✅ now using backend history only
+        setHistory(data.history || []);
       } catch (err) {
         console.error("❌ Dashboard fetch error:", err);
+        if (!localStorage.getItem("token")) {
+          navigate("/login");
+        }
       } finally {
         setLoading(false);
       }
@@ -79,16 +63,9 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ProfileCard user={user} />
 
-        <PartyCard
-          partyCode={user.chosenAlignment as Party}
-          title="Your Alignment"
-        />
+        <PartyCard partyCode={user.chosenAlignment as Party} title="Your Alignment" />
 
-        <PartyCard
-          prediction={lastPrediction}
-          title="Predicted from Survey"
-          showRunnerUp
-        />
+        <PartyCard prediction={lastPrediction} title="Predicted from Survey" showRunnerUp />
       </div>
 
       {/* Prediction History Timeline */}
