@@ -1,6 +1,8 @@
+// src/pages/ResultsPage.tsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Party } from "@/types/dashboard";
+import { Party, PredictionResult } from "@/types/dashboard";
 import { partyDisplayMap } from "@/utils/partyMap";
 import { predictParty } from "@/utils/predict_party_logic";
 import { getPrediction } from "@/services/api";
@@ -23,25 +25,29 @@ interface PredictionHistoryItem {
 
 const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [winner, setWinner] = useState<Party | null>(null);
-  const [probabilities, setProbabilities] = useState<Record<string, number>>({});
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedAnswers = localStorage.getItem("surveyAnswers");
 
     if (storedAnswers) {
+      // ✅ Use frontend logic if answers exist
       const parsed = JSON.parse(storedAnswers);
-      const { winner, probabilities } = predictParty(parsed);
-      setWinner(winner as Party);
-      setProbabilities(probabilities);
+      const result = predictParty(parsed); // returns PredictionResult
+      setPrediction(result);
       setLoading(false);
     } else {
+      // ✅ Otherwise fallback to backend
       getPrediction()
         .then((pred) => {
           if (pred) {
-            setWinner(pred.party as Party);
-            setProbabilities({ [pred.party]: pred.confidence || 0 });
+            setPrediction({
+              winner: pred.party as Party,
+              probabilities: {
+                [pred.party]: pred.confidence || 0,
+              } as Record<Party, number>,
+            });
           }
         })
         .catch((err) => console.error("❌ Failed to fetch prediction:", err))
@@ -50,7 +56,9 @@ const ResultsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!winner) return;
+    if (!prediction) return;
+
+    const { winner, probabilities } = prediction;
 
     const newEntry: PredictionHistoryItem = {
       party: winner,
@@ -70,13 +78,13 @@ const ResultsPage: React.FC = () => {
       "predictionHistory",
       JSON.stringify([newEntry, ...history].slice(0, 20))
     );
-  }, [winner, probabilities]);
+  }, [prediction]);
 
   if (loading) {
     return <p className="text-center mt-20">Loading prediction...</p>;
   }
 
-  if (!winner) {
+  if (!prediction) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h2 className="text-xl font-bold">No prediction available</h2>
@@ -90,6 +98,7 @@ const ResultsPage: React.FC = () => {
     );
   }
 
+  const { winner, probabilities } = prediction;
   const display = partyDisplayMap[winner];
   const confidence = probabilities[winner] || 0;
 

@@ -1,14 +1,16 @@
-// src/types/dashboard.ts
-
-// ✅ Only ONE definition
 export type Party =
-  | "lab"     // Labour
-  | "con"     // Conservative
-  | "ld"      // Liberal Democrats
-  | "green"   // Green
-  | "reform"  // Reform UK
-  | "snp"     // SNP
-  | "other";  // Other
+  | "lab"
+  | "con"
+  | "ld"
+  | "green"
+  | "reform"
+  | "snp"
+  | "other";
+
+export interface PredictionResult {
+  winner: Party;
+  probabilities: Record<Party, number>;
+}
 
 export interface Prediction {
   party: Party;
@@ -40,12 +42,12 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  displayName?: string;       
-  constituency?: string;     
-  chosenAlignment?: string;   
-  dashboardParty?: string;    
-  profilePicUrl?: string; 
-  region?: string;   
+  displayName?: string;
+  constituency?: string;
+  chosenAlignment?: string;
+  dashboardParty?: string;
+  profilePicUrl?: string;
+  region?: string;
 }
 
 export interface Badge {

@@ -1,17 +1,19 @@
-// partyLogic.ts
+// src/utils/partyLogic.ts
 
+// Use short codes for consistency with rest of app
 export type Party =
-  | "Labour"
-  | "Conservative"
-  | "Liberal Democrats"
-  | "Green"
-  | "Reform"
-  | "SNP"
-  | "Plaid Cymru"
-  | "Sinn Féin";
+  | "lab"
+  | "con"
+  | "ld"
+  | "green"
+  | "reform"
+  | "snp"
+  | "plaid"
+  | "sf"
+  | "other";
 
 export const partyLogic: Record<Party, Record<string, string[]>> = {
-  Labour: {
+  lab: {
     age_bracket: ["18–24", "25–34"],
     education_level: ["GCSE or equivalent", "Bachelor’s degree", "Master’s degree"],
     household_income: ["Under £20,000", "£20,000–£40,000"],
@@ -29,9 +31,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Very concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Some", "Neutral"]
+    trust_public_institutions: ["Some", "Neutral"],
   },
-  Conservative: {
+  con: {
     age_bracket: ["55–64", "65+"],
     education_level: ["No qualification", "GCSE or equivalent"],
     household_income: ["£60,000–£80,000", "£80,000–£100,000", "Over £100,000"],
@@ -49,9 +51,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Not very concerned"],
     climate_priority: ["No"],
     immigration_policy_stance: ["More restrictive"],
-    trust_public_institutions: ["A great deal"]
+    trust_public_institutions: ["A great deal"],
   },
-  "Liberal Democrats": {
+  ld: {
     age_bracket: ["25–34", "35–44", "45–54"],
     education_level: ["Bachelor’s degree", "Master’s degree", "PhD or higher"],
     household_income: ["£40,000–£60,000", "£60,000–£80,000"],
@@ -69,9 +71,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Somewhat concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Some", "Neutral"]
+    trust_public_institutions: ["Some", "Neutral"],
   },
-  Green: {
+  green: {
     age_bracket: ["18–24", "25–34"],
     education_level: ["Bachelor’s degree", "Master’s degree", "PhD or higher"],
     household_income: ["Under £20,000", "£20,000–£40,000"],
@@ -89,9 +91,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Very concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Some"]
+    trust_public_institutions: ["Some"],
   },
-  Reform: {
+  reform: {
     age_bracket: ["45–54", "55–64", "65+"],
     education_level: ["No qualification", "GCSE or equivalent"],
     household_income: ["Under £20,000", "£20,000–£40,000", "£40,000–£60,000"],
@@ -109,9 +111,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Very concerned"],
     climate_priority: ["No"],
     immigration_policy_stance: ["More restrictive"],
-    trust_public_institutions: ["None", "Little"]
+    trust_public_institutions: ["None", "Little"],
   },
-  SNP: {
+  snp: {
     age_bracket: ["25–34", "35–44", "45–54"],
     education_level: ["Bachelor’s degree", "GCSE or equivalent"],
     household_income: ["£20,000–£40,000", "£40,000–£60,000"],
@@ -129,9 +131,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Somewhat concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Some"]
+    trust_public_institutions: ["Some"],
   },
-  "Plaid Cymru": {
+  plaid: {
     age_bracket: ["35–44", "45–54"],
     education_level: ["GCSE or equivalent", "Bachelor’s degree"],
     household_income: ["£20,000–£40,000"],
@@ -149,9 +151,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Somewhat concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Some"]
+    trust_public_institutions: ["Some"],
   },
-  "Sinn Féin": {
+  sf: {
     age_bracket: ["18–24", "25–34"],
     education_level: ["GCSE or equivalent", "Bachelor’s degree"],
     household_income: ["Under £20,000"],
@@ -169,6 +171,9 @@ export const partyLogic: Record<Party, Record<string, string[]>> = {
     concern_political_corruption: ["Very concerned"],
     climate_priority: ["Yes"],
     immigration_policy_stance: ["More open"],
-    trust_public_institutions: ["Little"]
-  }
+    trust_public_institutions: ["Little"],
+  },
+  other: {
+    constituency_leaning: ["Independent", "Local Party", "Other"],
+  },
 };
