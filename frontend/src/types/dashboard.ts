@@ -46,9 +46,9 @@ export interface User {
   constituency?: string;
   chosenAlignment?: string;
   dashboardParty?: string;
-  profilePicUrl?: string;
-  region?: string;
+  profilePicUrl?: string | null; 
 }
+
 
 export interface Badge {
   name: string;

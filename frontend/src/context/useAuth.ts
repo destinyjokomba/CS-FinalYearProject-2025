@@ -10,7 +10,10 @@ const getUser = (): User | null => {
 
 const setUser = (user: User | null) => {
   if (user) {
-    localStorage.setItem("user", JSON.stringify(user));
+    const existing = getUser();
+    // Merge with existing to preserve fields like profilePicUrl
+    const merged = { ...existing, ...user };
+    localStorage.setItem("user", JSON.stringify(merged));
   } else {
     localStorage.removeItem("user");
   }
@@ -36,7 +39,7 @@ const getToken = (): string | null => {
 const login = async (username: string, password: string) => {
   const data = await loginUser(username, password);
   if (data.token) setToken(data.token);
-  if (data.user) setUser(data.user);
+  if (data.user) setUser(data.user); 
   return data;
 };
 
@@ -48,7 +51,7 @@ const register = async (form: {
   password: string;
 }) => {
   const data = await registerUser(form);
-  if (data.user) setUser(data.user);
+  if (data.user) setUser(data.user); // merged persistence
   return data;
 };
 

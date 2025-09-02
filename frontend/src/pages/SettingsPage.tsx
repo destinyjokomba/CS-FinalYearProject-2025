@@ -43,9 +43,12 @@ const SettingsPage: React.FC = () => {
       setConstituency(storedUser.constituency || "");
       setChosenAlignment(storedUser.chosenAlignment || "");
       setDashboardParty(storedUser.dashboardParty || "");
-      setPreviewUrl(storedUser.profilePicUrl || null);
 
-      // ✅ Load alignment fallback from localStorage if available
+      // ✅ Always check both user object and fallback storage
+      const storedPic =
+        storedUser.profilePicUrl || localStorage.getItem("profilePicUrl");
+      setPreviewUrl(storedPic || null);
+
       const storedAlignment = localStorage.getItem("chosenAlignment");
       if (storedAlignment && !storedUser.chosenAlignment) {
         setChosenAlignment(storedAlignment);
@@ -58,6 +61,20 @@ const SettingsPage: React.FC = () => {
       const file = e.target.files[0];
       setProfilePic(file);
       setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemovePicture = () => {
+    setProfilePic(null);
+    setPreviewUrl(null);
+    localStorage.removeItem("profilePicUrl");
+
+    // also clear from user object in localStorage
+    const storedUser = auth.getUser();
+    if (storedUser) {
+      storedUser.profilePicUrl = null;
+
+      auth.setUser(storedUser);
     }
   };
 
@@ -87,6 +104,11 @@ const SettingsPage: React.FC = () => {
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
         uploadedPicUrl = uploadData.profilePicUrl;
+
+        // ✅ Store fallback for persistence
+        if (uploadedPicUrl) {
+          localStorage.setItem("profilePicUrl", uploadedPicUrl);
+        }
       }
 
       const body: Record<string, unknown> = {
@@ -96,6 +118,10 @@ const SettingsPage: React.FC = () => {
         dashboardParty,
       };
       if (uploadedPicUrl) body.profilePicUrl = uploadedPicUrl;
+      if (previewUrl === null && !profilePic) {
+        // Explicitly remove profile pic
+        body.profilePicUrl = null;
+      }
 
       const res = await fetch(`${import.meta.env.VITE_API_URL}/me/settings`, {
         method: "PUT",
@@ -109,14 +135,17 @@ const SettingsPage: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save settings");
 
-      // ✅ Update local storage user + alignment
+      // ✅ Update user in auth
       auth.setUser(data.user as User);
-      if (chosenAlignment) {
-        localStorage.setItem("chosenAlignment", chosenAlignment);
+
+      // ✅ Handle clearing fallback if backend sets picture to null
+      if (data.user && (data.user as User).profilePicUrl === null) {
+        localStorage.removeItem("profilePicUrl");
+        setPreviewUrl(null);
       }
 
-      // Unlock badge if alignment is set
       if (chosenAlignment) {
+        localStorage.setItem("chosenAlignment", chosenAlignment);
         localStorage.setItem("alignment_set", "true");
       }
 
@@ -152,7 +181,18 @@ const SettingsPage: React.FC = () => {
           ) : (
             <div className="w-20 h-20 rounded-full bg-gray-200 mb-3" />
           )}
-          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <div className="flex gap-3">
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            {previewUrl && (
+              <button
+                type="button"
+                onClick={handleRemovePicture}
+                className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm"
+              >
+                Remove
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Display Name */}

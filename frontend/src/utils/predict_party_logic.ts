@@ -1,53 +1,73 @@
 // src/utils/predict_party_logic.ts
 
-import { Party, PredictionResult } from "@/types/dashboard";
-import { partyLogic } from "@/utils/party_logic";
+import type { Party, PredictionResult } from "@/types/dashboard";
 
-// Base scores
-const baseScores: Record<Party, number> = {
-  lab: 0,
-  con: 0,
-  reform: 0,
-  ld: 0,
-  green: 0,
-  snp: 0,
-  other: 0,
+export const partyDisplayMap: Record<Party, { name: string; color: string }> = {
+  lab: { name: "Labour", color: "#DC2626" },
+  con: { name: "Conservative", color: "#2563EB" },
+  ld: { name: "Liberal Democrats", color: "#f38f0dff" },
+  green: { name: "Green", color: "#109a42ff" },
+  reform: { name: "Reform UK", color: "#09b9bcff" },
+  snp: { name: "SNP", color: "#ebc012ff" },
+  other: { name: "Other", color: "#9CA3AF" },
 };
 
-// ───────────────────────────────
-// Main predictor
-// ───────────────────────────────
 export function predictParty(answers: Record<string, string>): PredictionResult {
-  const scores: Record<Party, number> = { ...baseScores };
+  // initialise scores for all parties
+  const scores: Record<Party, number> = {
+    lab: 0,
+    con: 0,
+    ld: 0,
+    green: 0,
+    reform: 0,
+    snp: 0,
+    other: 0,
+  };
 
-  // Loop over each party and apply weights
-  for (const [party, conditions] of Object.entries(partyLogic) as [
-    Party,
-    Record<string, Record<string, number>>
-  ][]) {
-    for (const [field, weightedAnswers] of Object.entries(conditions)) {
-      const answer = answers[field];
-      if (answer && weightedAnswers[answer] !== undefined) {
-        scores[party] += weightedAnswers[answer];
-      }
-    }
+  // example scoring logic (expand as needed)
+  if (answers.age_bracket === "18–24") {
+    scores.lab += 2;
+    scores.green += 2;
+    scores.snp += 1;
+  }
+  if (answers.age_bracket === "65+") {
+    scores.con += 2;
+    scores.reform += 2;
   }
 
-  // Pick winner
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const topScore = sorted[0][1];
-  const topParties = sorted.filter(([, score]) => score === topScore);
+  if (answers.support_welfare_spending === "yes") {
+    scores.lab += 2;
+    scores.green += 1;
+    scores.snp += 1;
+  } else {
+    scores.con += 1;
+    scores.reform += 2;
+  }
+
+  if (answers.tax_on_wealthy === "yes") {
+    scores.lab += 2;
+    scores.green += 1;
+  } else {
+    scores.con += 1;
+    scores.reform += 1;
+  }
+
+  // determine winner
+  const maxScore = Math.max(...Object.values(scores));
+  const topParties = Object.entries(scores).filter(
+    ([, score]) => score === maxScore
+  );
 
   let winner: Party;
   if (topParties.length === 1) {
     winner = topParties[0][0] as Party;
   } else {
-    // Random tie-break for fairness
+    // tie → random pick
     const randomIndex = Math.floor(Math.random() * topParties.length);
     winner = topParties[randomIndex][0] as Party;
   }
 
-  // Relative probabilities (distribution across all parties)
+  // normalised probabilities
   const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
   const probabilities = Object.fromEntries(
     Object.entries(scores).map(([party, score]) => [
