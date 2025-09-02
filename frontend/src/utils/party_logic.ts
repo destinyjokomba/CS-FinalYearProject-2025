@@ -1,105 +1,151 @@
 // src/utils/partyLogic.ts
 
 export type Party =
-  | "Labour"
-  | "Conservative"
-  | "Liberal Democrats"
-  | "Green"
-  | "Reform"
-  | "SNP"
-  | "Other";
+  | "lab"
+  | "con"
+  | "ld"
+  | "green"
+  | "reform"
+  | "snp"
+  | "other";
 
-export const partyLogic: Record<
-  Party,
-  Record<string, Record<string, number>>
-> = {
-  Labour: {
-    support_welfare_spending: { Yes: 5 },
-    tax_on_wealthy: { Yes: 5 },
-    housing_status: { Renting: 3, "Council housing": 3, "Living with family": 3 },
-    socioeconomic_class: { "Working class": 3, "Lower-middle class": 2 },
-    satisfaction_national_government: {
-      Dissatisfied: 2,
-      "Very dissatisfied": 3,
-    },
-    immigration_policy_stance: { "More open": 2 },
-    trust_mainstream_media: { Low: 2, Neutral: 1 },
-    trust_public_institutions: { Low: 2, Neutral: 1 },
+export const partyLogic: Record<Party, Record<string, string[]>> = {
+  lab: {
+    age_bracket: ["18–24", "25–34", "35–44"],
+    education_level: ["bachelors degree"],
+    household_income: ["£20,000–£40,000"],
+    socioeconomic_class: ["working class"],
+    housing_status: ["living with family", "council housing", "renter"],
+    constituency_leaning: ["labour"],
+    vote_national: ["yes", "no"],
+    vote_local: ["yes", "no"],
+    satisfaction_national_government: ["dissatisfied", "very dissatisfied"],
+    importance_economy: ["very important"],
+    importance_social_issues: ["very important"],
+    support_welfare_spending: ["yes"],
+    tax_on_wealthy: ["yes"],
+    trust_mainstream_media: ["low", "neutral"],
+    concern_political_corruption: ["somewhat concerned"],
+    climate_priority: ["yes"],
+    immigration_policy_stance: ["more open"],
+    trust_public_institutions: ["low"],
+    region_boost: ["north of england", "wales", "london"],
   },
 
-  Conservative: {
-    household_income: {
-      "£60,000–£80,000": 5,
-      "£80,000–£100,000": 5,
-      "Over £100,000": 5,
-    },
-    housing_status: { "Own outright": 4, Mortgage: 4 },
-    immigration_policy_stance: { Restrictive: 4, "Very restrictive": 5 },
-    trust_public_institutions: { High: 3, "Very high": 4 },
-    trust_mainstream_media: { High: 2, "Very high": 3 },
-    age_bracket: { "55–64": 2, "65+": 3 },
-    satisfaction_national_government: { Satisfied: 2, "Very satisfied": 3 },
-    support_welfare_spending: { No: 3 },
-    tax_on_wealthy: { No: 3 },
+  con: {
+    age_bracket: ["35–44", "45–54", "55–64", "65+"],
+    education_level: ["masters degree", "phd or higher"],
+    household_income: ["£60,000-£80,000", "£80,000 +"],
+    socioeconomic_class: ["upper middle class"],
+    housing_status: ["homeowner"],
+    constituency_leaning: ["conservative"],
+    vote_national: ["yes"],
+    vote_local: ["yes"],
+    satisfaction_national_government: ["dissatisfied"],
+    importance_economy: ["not important"],
+    importance_social_issues: ["not important"],
+    support_welfare_spending: ["no"],
+    tax_on_wealthy: ["no"],
+    trust_mainstream_media: ["high", "very high"],
+    concern_political_corruption: ["not concerned"],
+    climate_priority: ["no"],
+    immigration_policy_stance: ["restrictive", "very restrictive"],
+    trust_public_institutions: ["high", "very high"],
+    region_boost: ["south of england"],
   },
 
-  "Liberal Democrats": {
-    education_level: {
-      "Bachelor’s degree": 3,
-      "Master’s degree": 4,
-      "PhD or higher": 5,
-    },
-    household_income: { "£40,000–£60,000": 3, "£60,000–£80,000": 2 },
-    age_bracket: { "35–44": 2, "45–54": 2 },
-    satisfaction_national_government: { Neutral: 2, Dissatisfied: 1 },
-    concern_political_corruption: { "Somewhat concerned": 2 },
-    immigration_policy_stance: { "More open": 2, Unbothered: 1 },
-    trust_mainstream_media: { Neutral: 2, Medium: 2 },
-    trust_public_institutions: { Neutral: 2, Some: 1 },
-    climate_priority: { Yes: 2 },
+  ld: {
+    age_bracket: ["35–44", "45–54"],
+    education_level: ["masters degree", "phd or higher"],
+    household_income: ["£40,000–£60,000", "£60,000-£80,000"],
+    socioeconomic_class: ["middle class"],
+    housing_status: ["renter", "homeowner"],
+    constituency_leaning: ["liberal democrat"],
+    vote_national: ["yes"],
+    vote_local: ["yes"],
+    satisfaction_national_government: ["neutral"],
+    importance_economy: ["somewhat important"],
+    importance_social_issues: ["somewhat important"],
+    support_welfare_spending: ["yes"],
+    tax_on_wealthy: ["yes", "no"],
+    trust_mainstream_media: ["medium"],
+    concern_political_corruption: ["somewhat concerned"],
+    climate_priority: ["yes"],
+    immigration_policy_stance: ["more open", "unbothered"],
+    trust_public_institutions: ["medium"],
+    region_boost: ["london", "north of england"],
   },
 
-  Green: {
-    climate_priority: { Yes: 6 },
-    age_bracket: { "18–24": 3, "25–34": 3 },
-    housing_status: { Renting: 2, "Living with family": 2 },
-    satisfaction_national_government: { "Very dissatisfied": 2 },
-    concern_political_corruption: { "Very concerned": 2 },
-    importance_social_issues: { "Very important": 3 },
-    socioeconomic_class: { "Working class": 2, "Lower-middle class": 2 },
-    trust_mainstream_media: { Low: 2, None: 2 },
-    trust_public_institutions: { Low: 2, "Very low": 3 },
+  green: {
+    age_bracket: ["18–24", "25–34"],
+    education_level: ["bachelors degree", "masters degree"],
+    household_income: ["under £20,000", "£20,000–£40,000"],
+    socioeconomic_class: ["working class", "lower middle class"],
+    housing_status: ["renter", "living with family", "council housing"],
+    constituency_leaning: ["green"],
+    vote_national: ["yes", "no"],
+    vote_local: ["no"],
+    satisfaction_national_government: ["very dissatisfied"],
+    importance_economy: ["important"],
+    importance_social_issues: ["important"],
+    support_welfare_spending: ["yes"],
+    tax_on_wealthy: ["yes"],
+    trust_mainstream_media: ["very low"],
+    concern_political_corruption: ["very concerned"],
+    climate_priority: ["yes"],
+    immigration_policy_stance: ["more open"],
+    trust_public_institutions: ["very low"],
+    region_boost: ["london"],
   },
 
-  Reform: {
-    immigration_policy_stance: { Restrictive: 5, "Very restrictive": 6 },
-    education_level: { "No qualification": 3, "GCSE or equivalent": 2 },
-    household_income: { "Under £20,000": 2, "£20,000–£40,000": 2 },
-    socioeconomic_class: { "Working class": 3 },
-    satisfaction_national_government: { "Very dissatisfied": 3 },
-    support_welfare_spending: { No: 3 },
-    tax_on_wealthy: { No: 3 },
-    trust_mainstream_media: { None: 2, Low: 2 },
-    trust_public_institutions: { None: 2, Low: 2 },
-    concern_political_corruption: { "Very concerned": 2 },
+  reform: {
+    age_bracket: ["35–44", "45–54", "55–64"],
+    education_level: ["no qualification", "gcse or equivalent", "a-level or equivalent"],
+    household_income: ["under £20,000"],
+    socioeconomic_class: ["working class"],
+    housing_status: ["council housing", "living with family"],
+    constituency_leaning: ["conservative", "reform"],
+    vote_national: ["no"],
+    vote_local: ["no"],
+    satisfaction_national_government: ["very dissatisfied"],
+    importance_economy: ["important"],
+    importance_social_issues: ["not important"],
+    support_welfare_spending: ["no"],
+    tax_on_wealthy: ["no"],
+    trust_mainstream_media: ["very high"],
+    concern_political_corruption: ["very concerned"],
+    climate_priority: ["no"],
+    immigration_policy_stance: ["very restrictive"],
+    trust_public_institutions: ["very high"],
+    region_boost: ["midlands", "north of england", "south of england"],
   },
 
-  SNP: {
-    region_boost: { Scotland: 6 },
-    constituency_leaning: { SNP: 6 },
-    support_welfare_spending: { Yes: 3 },
-    climate_priority: { Yes: 2 },
-    satisfaction_national_government: {
-      Dissatisfied: 2,
-      "Very dissatisfied": 2,
-    },
-    immigration_policy_stance: { "More open": 2 },
-    trust_mainstream_media: { Neutral: 1, Low: 1 },
-    trust_public_institutions: { Neutral: 1, Low: 1 },
+  snp: {
+    age_bracket: ["25–34", "35–44", "45–54"],
+    education_level: ["bachelors degree", "gcse or equivalent"],
+    household_income: ["£20,000–£40,000", "£40,000–£60,000"],
+    socioeconomic_class: ["working class", "middle class"],
+    housing_status: ["renter", "homeowner"],
+    constituency_leaning: ["snp"],
+    vote_national: ["yes"],
+    vote_local: ["yes"],
+    satisfaction_national_government: ["dissatisfied"],
+    importance_economy: ["important"],
+    importance_social_issues: ["very important"],
+    support_welfare_spending: ["yes"],
+    tax_on_wealthy: ["yes"],
+    trust_mainstream_media: ["neutral"],
+    concern_political_corruption: ["somewhat concerned"],
+    climate_priority: ["yes"],
+    immigration_policy_stance: ["more open"],
+    trust_public_institutions: ["medium"],
+    region_boost: ["scotland"],
   },
 
-  Other: {
-    constituency_leaning: { Independent: 6, "Local Party": 6, Other: 6 },
-    region_boost: { Wales: 3, "Northern Ireland": 3 },
+  other: {
+    constituency_leaning: ["other"],
+    vote_national: ["no"],
+    vote_local: ["no"],
+    region_boost: ["wales", "northern ireland"],
   },
 };
