@@ -44,7 +44,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   green: {
     name: "Green",
     color: "#6AB023",
-    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/green.svg",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/green.svg.png", // ✅ Fixed
     slogan: "Fairer, Greener Future",
     policies: ["Climate action", "Renewable energy", "Social justice"],
     voters: "Young urban progressives, environmentalists",
@@ -54,7 +54,7 @@ export const partyDisplayMap: Record<Party, PartyMetadata> = {
   reform: {
     name: "Reform UK",
     color: "#12B6CF",
-    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/reform.svg",
+    logo: "https://destiny-election-predictor-frontend.s3.eu-north-1.amazonaws.com/logos/reform.svg.png", // ✅ Fixed
     slogan: "Britain Deserves Better",
     policies: ["Immigration reform", "Cut red tape", "Lower taxes"],
     voters: "Right-leaning, anti-establishment voters",
