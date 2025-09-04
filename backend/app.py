@@ -19,6 +19,9 @@ from psycopg2.errors import UniqueViolation
 from werkzeug.utils import secure_filename
 
 from backend.db import get_db_connection, get_cursor
+import shap
+import re
+
 
 # ─── Load env ────────────────────────────────────────────────────────────────
 load_dotenv()
@@ -166,13 +169,42 @@ inverse_mapping = {0: "lab", 1: "con", 2: "ld", 3: "green", 4: "reform", 5: "snp
 PARTIES = ["lab", "con", "ld", "green", "reform", "snp", "other"]
 
 # ─── Auth: register & login ──────────────────────────────────────────────────
+
+def password_strength(password: str) -> str:
+    """Return password strength label."""
+    length = len(password) >= 8
+    upper = re.search(r"[A-Z]", password) is not None
+    lower = re.search(r"[a-z]", password) is not None
+    number = re.search(r"[0-9]", password) is not None
+    special = re.search(r"[@$!%*?&]", password) is not None
+
+    score = sum([length, upper, lower, number, special])
+
+    if score <= 2:
+        return "Weak ❌"
+    elif score in [3, 4]:
+        return "Medium ⚠️"
+    elif score == 5:
+        return "Strong ✅"
+    return "Weak ❌"
+
+
 @app.route("/auth/register", methods=["POST"])
 @cross_origin(origins=allowed_origins, supports_credentials=True)
 def register():
     data = request.get_json() or {}
     username, email, password = data.get("username"), data.get("email"), data.get("password")
+
     if not username or not email or not password:
         return jsonify({"message": "Missing required fields"}), 400
+
+    # Check password strength
+    strength = password_strength(password)
+    if strength == "Weak ❌":
+        return jsonify({
+            "message": f"Password strength: {strength}. Please use at least 8 characters, with uppercase, lowercase, number & special character.",
+            "passwordStrength": strength
+        }), 400
 
     pw_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
@@ -186,17 +218,22 @@ def register():
         user = cur.fetchone()
         conn.commit()
         return jsonify({
-            "message": "User registered",
+            "message": f"User registered successfully 🎉 (Password strength: {strength})",
             "id": user["id"],
-            "user": {"id": user["id"], "username": username, "email": email.lower(),
-                     "profilePicUrl": None, "chosen_alignment": None}
+            "user": {
+                "id": user["id"],
+                "username": username,
+                "email": email.lower(),
+                "profilePicUrl": None,
+                "chosen_alignment": None
+            },
+            "passwordStrength": strength
         }), 201
     except UniqueViolation:
         conn.rollback()
         return jsonify({"message": "User already exists"}), 409
     finally:
         cur.close(); conn.close()
-
 # ─── Login Route ───────────────────────────────────────────────────────────────
 @app.route("/auth/login", methods=["POST"])
 @cross_origin(origins=allowed_origins, supports_credentials=True)
@@ -229,7 +266,7 @@ def login():
         {
             "user_id": user["id"],
             "username": user["username"],
-            "exp": dt.datetime.now(dt.UTC) + dt.timedelta(hours=24)  # ✅ FIXED
+            "exp": dt.datetime.now(dt.UTC) + dt.timedelta(hours=24)  
         },
         app.config["SECRET_KEY"],
         algorithm="HS256"
@@ -266,7 +303,6 @@ def predict(current_user):
         data = request.get_json(silent=True) or {}
         if not data:
             return jsonify({"error": "No input data provided"}), 400
-
 
         # ─── Feature engineering ─────────────────────────────
         def engineer_features(d: Dict[str, Any]) -> Dict[str, Any]:
@@ -341,13 +377,11 @@ def predict(current_user):
         probs = model.predict_proba(final_df)[0]
         classes = model.classes_
 
-        # Map probabilities for ALL parties
         probabilities = {
             inverse_mapping.get(int(cls), "other"): round(float(prob) * 100, 2)
             for cls, prob in zip(classes, probs)
         }
 
-        # Top 3 parties
         top_predictions = [
             {"party": party, "confidence": prob}
             for party, prob in sorted(probabilities.items(), key=lambda x: x[1], reverse=True)[:3]
@@ -373,7 +407,6 @@ def predict(current_user):
             ),
         )
 
-        # Update dashboard_party + mark survey complete
         cur.execute(
             """
             UPDATE users
@@ -387,13 +420,25 @@ def predict(current_user):
         conn.commit()
         cur.close(); conn.close()
 
+        # ─── SHAP values (safe attempt) ─────────────────────────────
+        shap_values = None
+        try:
+            import shap
+            explainer = shap.TreeExplainer(model)
+            shap_raw = explainer.shap_values(final_df)
+            shap_values = dict(zip(final_df.columns, shap_raw[0].tolist()))
+        except Exception as shap_err:
+            print("⚠️ SHAP explanation failed:", shap_err)
+            shap_values = None
+
         # ─── Final Response ─────────────────────────────
         return jsonify({
             "winner": winner,
             "confidence": confidence,
             "top_predictions": top_predictions,
             "probabilities": probabilities,
-            "profileCompletion": 1
+            "profileCompletion": 1,
+            "shap_values": shap_values  
         }), 200
 
     except Exception as e:

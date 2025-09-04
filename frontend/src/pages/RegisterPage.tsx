@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import auth from "@/context/useAuth";
+import { AxiosError } from "axios";
+
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,9 +17,31 @@ const RegisterPage: React.FC = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [passwordStrength, setPasswordStrength] = useState("");
+
+  // 🔹 Password strength checker
+  const checkStrength = (password: string): string => {
+    const length = password.length >= 8;
+    const upper = /[A-Z]/.test(password);
+    const lower = /[a-z]/.test(password);
+    const number = /[0-9]/.test(password);
+    const special = /[@$!%*?&]/.test(password);
+
+    const score = [length, upper, lower, number, special].filter(Boolean).length;
+
+    if (score <= 2) return "Weak ❌";
+    if (score === 3 || score === 4) return "Medium ⚠️";
+    if (score === 5) return "Strong ✅";
+    return "";
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+
+    if (name === "password") {
+      setPasswordStrength(checkStrength(value));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,20 +52,31 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    // 🔹 Block weak passwords before hitting backend
+    if (passwordStrength.includes("Weak")) {
+      setError("❌ Password is too weak. Use at least 8 chars, with uppercase, lowercase, number & special char.");
+      return;
+    }
+
     try {
       await auth.register(form);
       navigate("/login");
-    } catch {
-      setError("❌ Registration failed. Please try again.");
-    }
-  };
+   } catch (err: unknown) {
+  const axiosErr = err as AxiosError<{ message?: string }>;
+  setError(
+    axiosErr.response?.data?.message ||
+      "❌ Registration failed. Please try again."
+  );
+}
+}
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" name="first_name" value={form.first_name} onChange={handleChange} placeholder="First Name" className="w-full px-4 py-2 border rounded-lg" required />
           <input type="text" name="surname" value={form.surname} onChange={handleChange} placeholder="Surname" className="w-full px-4 py-2 border rounded-lg" required />
@@ -49,11 +84,38 @@ const RegisterPage: React.FC = () => {
           <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Email" className="w-full px-4 py-2 border rounded-lg" required />
 
           <div className="relative">
-            <input type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange} placeholder="Password" className="w-full px-4 py-2 border rounded-lg pr-12" required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-sm text-gray-500 hover:text-gray-700">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              className="w-full px-4 py-2 border rounded-lg pr-12"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-2 text-sm text-gray-500 hover:text-gray-700"
+            >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+
+          {/* 🔹 Password strength feedback */}
+          {form.password && (
+            <p
+              className={`text-sm mt-1 ${
+                passwordStrength.includes("Weak")
+                  ? "text-red-500"
+                  : passwordStrength.includes("Medium")
+                  ? "text-yellow-500"
+                  : "text-green-600"
+              }`}
+            >
+              {passwordStrength}
+            </p>
+          )}
 
           <div className="flex items-center text-sm">
             <input type="checkbox" id="terms" checked={agreeTerms} onChange={() => setAgreeTerms(!agreeTerms)} className="mr-2" />
@@ -71,7 +133,7 @@ const RegisterPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Modal */}
+      {/* Modal for Terms */}
       {showTerms && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
