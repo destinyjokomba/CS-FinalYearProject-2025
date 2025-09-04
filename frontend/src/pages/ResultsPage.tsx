@@ -1,7 +1,6 @@
 // src/pages/ResultsPage.tsx
-
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Party, PredictionResult } from "@/types/dashboard";
 import { partyDisplayMap } from "@/utils/partyMap";
 import { predictParty } from "@/utils/predict_party_logic";
@@ -16,6 +15,7 @@ import {
   Cell,
 } from "recharts";
 import { incrementPartyChangeCount } from "@/utils/stats";
+import PredictionExplanation from "@/components/results/PredictionExplanation";
 
 interface PredictionHistoryItem {
   party: Party;
@@ -25,41 +25,60 @@ interface PredictionHistoryItem {
 
 const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
+  // Prefer state from survey → results, fallback to localStorage/backend
   useEffect(() => {
-    const storedAnswers = localStorage.getItem("surveyAnswers");
+    const state = location.state as {
+      predictedParty?: string;
+      answers?: Record<string, string>;
+    };
 
-    if (storedAnswers) {
-      // ✅ Use frontend logic if answers exist
-      const parsed = JSON.parse(storedAnswers);
-      const result = predictParty(parsed); // returns PredictionResult
-      setPrediction(result);
+    if (state?.predictedParty && state?.answers) {
+      // If redirected from survey with state
+      setAnswers(state.answers);
+      setPrediction({
+        winner: state.predictedParty as Party,
+        probabilities: { [state.predictedParty]: 100 } as Record<Party, number>,
+      });
       setLoading(false);
     } else {
-      // ✅ Otherwise fallback to backend
-      getPrediction()
-        .then((pred) => {
-          if (pred) {
-            setPrediction({
-              winner: pred.party as Party,
-              probabilities: {
-                [pred.party]: pred.confidence || 0,
-              } as Record<Party, number>,
-            });
-          }
-        })
-        .catch((err) => console.error("❌ Failed to fetch prediction:", err))
-        .finally(() => setLoading(false));
-    }
-  }, []);
+      // Otherwise use localStorage or backend
+      const storedAnswers = localStorage.getItem("surveyAnswers");
 
+      if (storedAnswers) {
+        const parsed = JSON.parse(storedAnswers);
+        setAnswers(parsed);
+        const result = predictParty(parsed);
+        setPrediction(result);
+        setLoading(false);
+      } else {
+        getPrediction()
+          .then((pred) => {
+            if (pred) {
+              setPrediction({
+                winner: pred.party as Party,
+                probabilities: {
+                  [pred.party]: pred.confidence || 0,
+                } as Record<Party, number>,
+              });
+            }
+          })
+          .catch((err) => console.error("❌ Failed to fetch prediction:", err))
+          .finally(() => setLoading(false));
+      }
+    }
+  }, [location.state]);
+
+  // Save history + track party changes
   useEffect(() => {
     if (!prediction) return;
 
     const { winner, probabilities } = prediction;
-
     const newEntry: PredictionHistoryItem = {
       party: winner,
       confidence: probabilities[winner] || 0,
@@ -108,6 +127,20 @@ const ResultsPage: React.FC = () => {
     color: partyDisplayMap[party as Party].color,
   }));
 
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/results?party=${winner}`;
+    if (navigator.share) {
+      await navigator.share({
+        title: "My Predicted Political Alignment",
+        text: `I matched with ${display.name} on Votelytics!`,
+        url: shareUrl,
+      });
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Link copied to clipboard!");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-6">
       <div
@@ -128,8 +161,9 @@ const ResultsPage: React.FC = () => {
         </p>
       </div>
 
+      {/* Probability chart */}
       {chartData.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-6 max-w-2xl w-full mb-8">
           <h2 className="text-lg font-semibold text-center mb-4">
             Probability Breakdown
           </h2>
@@ -147,6 +181,31 @@ const ResultsPage: React.FC = () => {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* Ethical explanation */}
+      <PredictionExplanation predictedParty={winner} answers={answers} />
+
+      {/* Action buttons */}
+      <div className="flex justify-center gap-4 mt-6 flex-wrap">
+        <button
+          onClick={() => navigate("/survey")}
+          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg"
+        >
+          Retake Survey
+        </button>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg"
+        >
+          Go to Dashboard
+        </button>
+        <button
+          onClick={handleShare}
+          className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg"
+        >
+          Share Results
+        </button>
+      </div>
     </div>
   );
 };

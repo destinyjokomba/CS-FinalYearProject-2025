@@ -65,7 +65,7 @@ const NavBar: React.FC = () => {
 
           {isLoggedIn ? (
             <>
-              {/* ✅ Show username when logged in */}
+              {/* Show username when logged in */}
               {user && (
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   Hi, {user.displayName || user.username} 👋

@@ -45,7 +45,7 @@ const SettingsPage: React.FC = () => {
       setDashboardParty(storedUser.dashboardParty || "");
       setPreviewUrl(storedUser.profilePicUrl || null);
 
-      // ✅ Load alignment fallback from localStorage if available
+      // Load alignment fallback from localStorage if available
       const storedAlignment = localStorage.getItem("chosenAlignment");
       if (storedAlignment && !storedUser.chosenAlignment) {
         setChosenAlignment(storedAlignment);

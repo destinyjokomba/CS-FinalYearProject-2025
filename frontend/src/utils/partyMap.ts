@@ -8,6 +8,7 @@ export interface PartyMetadata {
   policies: string[];
   voters: string;
   description: string;
+  
 }
 
 export const partyDisplayMap: Record<Party, PartyMetadata> = {

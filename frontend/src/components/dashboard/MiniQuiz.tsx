@@ -58,13 +58,13 @@ const MiniQuiz: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
   const [finished, setFinished] = useState(false);
 
-  // ✅ Reset when level changes
+  // Reset when level changes
   useEffect(() => {
     setQuestions(quizzes[level]);
     restartQuiz();
   }, [level]);
 
-  // ✅ Handle moving to next question
+  // Handle moving to next question
   const handleNext = useCallback(() => {
     setFeedback(null);
     setSelected(null);
@@ -77,7 +77,7 @@ const MiniQuiz: React.FC = () => {
     }
   }, [current, questions.length]);
 
-  // ✅ Timer effect
+  // Timer effect
   useEffect(() => {
     if (finished) return;
 
@@ -90,7 +90,7 @@ const MiniQuiz: React.FC = () => {
     return () => clearTimeout(timer);
   }, [timeLeft, finished, handleNext]);
 
-  // ✅ Handle answer submit
+  // Handle answer submit
   const handleSubmit = () => {
     if (!selected) return;
     const isCorrect = selected === questions[current].answer;
@@ -100,7 +100,7 @@ const MiniQuiz: React.FC = () => {
     setTimeout(() => handleNext(), 1500);
   };
 
-  // ✅ Restart quiz
+  // Restart quiz
   const restartQuiz = () => {
     setCurrent(0);
     setScore(0);
@@ -110,7 +110,7 @@ const MiniQuiz: React.FC = () => {
     setSelected(null);
   };
 
-  // ✅ Award badge if score ≥ 70%
+  //  Award badge if score ≥ 70%
   useEffect(() => {
     if (finished && score >= Math.ceil(questions.length * 0.7)) {
       localStorage.setItem(`${level}_badge`, "true");

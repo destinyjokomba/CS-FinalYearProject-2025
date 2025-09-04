@@ -33,12 +33,12 @@ const Badges: React.FC<{ unlockedBadges?: Badge[] }> = ({ unlockedBadges = [] })
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
-    // ✅ LocalStorage unlock flags
+    // LocalStorage unlock flags
     const quizBadgeUnlocked = localStorage.getItem("quiz_master_badge") === "true";
     const surveyBadgeUnlocked = localStorage.getItem("survey_completed") === "true";
     const alignmentBadgeUnlocked = localStorage.getItem("alignment_set") === "true";
 
-    // ✅ Merge with defaults
+    // Merge with defaults
     const mergedBadges = defaultBadges.map((badge) => {
       switch (badge.name) {
         case "Quiz Master":
@@ -64,7 +64,7 @@ const Badges: React.FC<{ unlockedBadges?: Badge[] }> = ({ unlockedBadges = [] })
       }
     });
 
-    // ✅ Combine backend badges too
+    // Combine backend badges too
     setAllBadges([...mergedBadges, ...unlockedBadges]);
   }, [unlockedBadges]);
 

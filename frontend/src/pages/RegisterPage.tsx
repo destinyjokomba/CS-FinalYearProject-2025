@@ -19,7 +19,7 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
 
-  // 🔹 Password strength checker
+  // Password strength checker
   const checkStrength = (password: string): string => {
     const length = password.length >= 8;
     const upper = /[A-Z]/.test(password);
@@ -102,7 +102,7 @@ const RegisterPage: React.FC = () => {
             </button>
           </div>
 
-          {/* 🔹 Password strength feedback */}
+          {/* Password strength feedback */}
           {form.password && (
             <p
               className={`text-sm mt-1 ${

@@ -21,7 +21,7 @@ const PartyCard: React.FC<PartyCardProps> = ({
   title,
   showRunnerUp,
 }) => {
-  // 🟢 Alignment Party Card (simplified)
+  // Alignment Party Card (simplified)
   if (partyCode) {
     return (
       <div
@@ -53,7 +53,7 @@ const PartyCard: React.FC<PartyCardProps> = ({
     );
   }
 
-  // 🔵 Predicted Party Card
+  //Predicted Party Card
   if (prediction) {
     const confidence = prediction.confidence ?? null;
     const party = prediction.party as Party;
