@@ -19,7 +19,7 @@ from psycopg2.errors import UniqueViolation
 from werkzeug.utils import secure_filename
 
 from backend.db import get_db_connection, get_cursor
-import shap
+# import shap
 import re
 
 
