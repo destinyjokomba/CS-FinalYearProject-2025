@@ -6,7 +6,7 @@ import { partyColors, partyLabels } from "@/utils/partyMap";
 
 interface ProfileCardProps {
   user: User;
-  lastPrediction?: Prediction | null; // 🔹 add this
+  lastPrediction?: Prediction | null; 
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({ user, lastPrediction }) => {

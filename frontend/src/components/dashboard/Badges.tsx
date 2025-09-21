@@ -7,7 +7,7 @@ interface Badge {
   progress_target: number;
 }
 
-// 🎯 Default local badges
+//  Default local badges
 const defaultBadges: Badge[] = [
   {
     name: "Quiz Master",

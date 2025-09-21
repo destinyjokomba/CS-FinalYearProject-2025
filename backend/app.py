@@ -419,7 +419,7 @@ def predict(current_user):
         conn.commit()
         cur.close(); conn.close()
 
-        # ─── SHAP values (safe attempt) ─────────────────────────────
+        # ─── SHAP values ─────────────────────────────
         shap_values = None
         try:
             import shap

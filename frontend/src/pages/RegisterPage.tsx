@@ -52,7 +52,7 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    // 🔹 Block weak passwords before hitting backend
+    //  Block weak passwords before hitting backend
     if (passwordStrength.includes("Weak")) {
       setError("❌ Password is too weak. Use at least 8 chars, with uppercase, lowercase, number & special char.");
       return;

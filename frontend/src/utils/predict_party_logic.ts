@@ -1,6 +1,7 @@
 // src/utils/predict_party_logic.ts
 import type { Party, PredictionResult } from "@/types/dashboard";
 
+// Party → Display Name & Color (used in charts/UI)
 export const partyDisplayMap: Record<Party, { name: string; color: string }> = {
   lab: { name: "Labour", color: "#DC2626" },
   con: { name: "Conservative", color: "#2563EB" },
@@ -11,16 +12,12 @@ export const partyDisplayMap: Record<Party, { name: string; color: string }> = {
   other: { name: "Other", color: "#9CA3AF" },
 };
 
+// Base scores (prevents zero-weight parties)
 const baseScores: Record<Party, number> = {
-  lab: 1,
-  con: 1,
-  ld: 1,
-  green: 1,
-  reform: 1,
-  snp: 1,
-  other: 1,
+  lab: 1, con: 1, ld: 1, green: 1, reform: 1, snp: 1, other: 1,
 };
 
+// Main prediction function
 export function predictParty(answers: Record<string, string>): PredictionResult {
   const scores: Record<Party, number> = { ...baseScores };
 
@@ -236,13 +233,78 @@ export function predictParty(answers: Record<string, string>): PredictionResult 
   // ───────────────────────────────
   const maxScore = Math.max(...Object.values(scores));
   const topParties = Object.entries(scores).filter(([, s]) => s === maxScore);
-
   const winner = topParties[Math.floor(Math.random() * topParties.length)][0] as Party;
 
+  // Calculate probabilities
   const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
   const probabilities = Object.fromEntries(
-    Object.entries(scores).map(([p, s]) => [p, parseFloat(((s / total) * 100).toFixed(1))])
+    Object.entries(scores).map(([p, s]) => [
+      p,
+      parseFloat(((s / total) * 100).toFixed(1)),
+    ])
   ) as Record<Party, number>;
 
-  return { winner, probabilities };
+  // ───────────────────────────────
+  // PARTY-SPECIFIC REASONS
+  // ───────────────────────────────
+  const reasons: string[] = [];
+
+  switch (winner) {
+    case "lab":
+      if (answers.tax_on_wealthy === "yes")
+        reasons.push("You support higher taxes on the wealthy, a key Labour stance.");
+      if (answers.support_welfare_spending === "yes")
+        reasons.push("You favour welfare spending to support communities.");
+      if (answers.satisfaction_national_government?.includes("dissatisfied"))
+        reasons.push("Your dissatisfaction with the current government aligns with Labour’s opposition.");
+      break;
+
+    case "con":
+      if (answers.tax_on_wealthy === "no")
+        reasons.push("You prefer lower taxation policies, a Conservative priority.");
+      if (answers.importance_economy === "very important")
+        reasons.push("You prioritise economic stability and growth, central to Conservative policies.");
+      if (answers.satisfaction_national_government?.includes("satisfied"))
+        reasons.push("Your satisfaction with the current government leans Conservative.");
+      break;
+
+    case "ld":
+      if (answers.immigration_policy_stance === "more open")
+        reasons.push("You support an open immigration stance, aligned with Liberal Democrat values.");
+      if (answers.climate_priority === "yes")
+        reasons.push("You prioritised climate action, a key Liberal Democrat policy area.");
+      break;
+
+    case "green":
+      if (answers.climate_priority === "yes")
+        reasons.push("You prioritised climate change action, central to the Green Party.");
+      if (answers.support_welfare_spending === "yes")
+        reasons.push("You favour welfare spending, consistent with Green’s progressive policies.");
+      if (answers.tax_on_wealthy === "yes")
+        reasons.push("You support redistributive taxation, strongly emphasised by the Greens.");
+      break;
+
+    case "reform":
+      if (answers.tax_on_wealthy === "no")
+        reasons.push("You prefer lower taxation, a Reform UK priority.");
+      if (answers.immigration_policy_stance?.includes("restrictive"))
+        reasons.push("You favour stricter immigration policies, central to Reform UK.");
+      if (["very low", "low"].includes(answers.trust_mainstream_media))
+        reasons.push("You expressed low trust in mainstream media, often shared by Reform UK supporters.");
+      break;
+
+    case "snp":
+      if (answers.support_welfare_spending === "yes")
+        reasons.push("You favour welfare spending, aligned with SNP’s policies.");
+      if (answers.tax_on_wealthy === "yes")
+        reasons.push("You support redistributive taxation, consistent with SNP.");
+      if (answers.region_boost === "Scotland")
+        reasons.push("Your region boosts SNP alignment.");
+      break;
+
+    default:
+      reasons.push("Your responses show a mix of positions across multiple parties.");
+  }
+
+  return { winner, probabilities, reasons };
 }

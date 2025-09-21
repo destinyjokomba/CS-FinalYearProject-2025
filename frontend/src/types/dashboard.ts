@@ -10,6 +10,7 @@ export type Party =
 export interface PredictionResult {
   winner: Party;
   probabilities: Record<Party, number>;
+  reasons: string[];
 }
 
 export interface Prediction {

@@ -39,15 +39,14 @@ const ResultsPage: React.FC = () => {
     };
 
     if (state?.predictedParty && state?.answers) {
-      // If redirected from survey with state
+      // Redirected from survey with state
       setAnswers(state.answers);
-      setPrediction({
-        winner: state.predictedParty as Party,
-        probabilities: { [state.predictedParty]: 100 } as Record<Party, number>,
-      });
+
+      const result = predictParty(state.answers);
+      setPrediction(result);
       setLoading(false);
     } else {
-      // Otherwise use localStorage or backend
+      // Fallback: localStorage or backend
       const storedAnswers = localStorage.getItem("surveyAnswers");
 
       if (storedAnswers) {
@@ -65,6 +64,7 @@ const ResultsPage: React.FC = () => {
                 probabilities: {
                   [pred.party]: pred.confidence || 0,
                 } as Record<Party, number>,
+                reasons: [], // fallback if API doesn’t provide reasons
               });
             }
           })
@@ -117,7 +117,7 @@ const ResultsPage: React.FC = () => {
     );
   }
 
-  const { winner, probabilities } = prediction;
+  const { winner, probabilities, reasons } = prediction;
   const display = partyDisplayMap[winner];
   const confidence = probabilities[winner] || 0;
 
@@ -127,26 +127,26 @@ const ResultsPage: React.FC = () => {
     color: partyDisplayMap[party as Party].color,
   }));
 
-    const handleShare = async () => {
-  const shareUrl = `${window.location.origin}/results?party=${winner}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({
-        title: "My Predicted Political Alignment",
-        text: `I matched with ${display.name} on Votelytics!`,
-        url: shareUrl,
-      });
-    } else if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(shareUrl);
-      alert("✅ Link copied to clipboard!");
-    } else {
-      window.prompt("Copy this link:", shareUrl);
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/results?party=${winner}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "My Predicted Political Alignment",
+          text: `I matched with ${display.name} on Votelytics!`,
+          url: shareUrl,
+        });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("✅ Link copied to clipboard!");
+      } else {
+        window.prompt("Copy this link:", shareUrl);
+      }
+    } catch (err) {
+      console.error("❌ Share failed:", err);
+      alert("Could not share results. Please copy the link manually.");
     }
-  } catch (err) {
-    console.error("❌ Share failed:", err);
-    alert("Could not share results. Please copy the link manually.");
-  }
-};
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-6">
@@ -161,7 +161,6 @@ const ResultsPage: React.FC = () => {
           Based on your answers, you are most likely to support{" "}
           <span className="font-semibold">{display.name}</span>.
         </p>
-        <p className="mt-2 text-white/90 text-sm italic">{display.slogan}</p>
         <p className="mt-3 text-white font-medium">
           Confidence: {confidence.toFixed(1)}% (
           {confidence >= 50 ? "High" : "Low"} confidence)
@@ -189,8 +188,13 @@ const ResultsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Ethical explanation */}
-      <PredictionExplanation predictedParty={winner} answers={answers} />
+      {/* Explanation */}
+      <PredictionExplanation
+        predictedParty={winner}
+        answers={answers}
+        probabilities={probabilities}
+        reasons={reasons}
+      />
 
       {/* Action buttons */}
       <div className="flex justify-center gap-4 mt-6 flex-wrap">
